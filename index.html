@@ -174,7 +174,7 @@
                                 <div class="absolute inset-0 bg-white/20 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
                             </button>
                             
-                            <button class="text-xs text-white uppercase tracking-[0.2em] border-b border-transparent hover:border-brand-gold hover:text-brand-gold transition-all duration-300 pb-1">
+                            <button @click="openExperience" class="text-xs text-white uppercase tracking-[0.2em] border-b border-transparent hover:border-brand-gold hover:text-brand-gold transition-all duration-300 pb-1">
                                 Ver Video de Experiencia
                             </button>
                         </div>
@@ -358,34 +358,234 @@
             </div>
         </transition>
 
+        <transition enter-active-class="transition duration-700 ease-out" enter-from-class="opacity-0 translate-y-10" enter-to-class="opacity-100 translate-y-0" leave-active-class="transition duration-500 ease-in" leave-from-class="opacity-100" leave-to-class="opacity-0">
+            <div v-if="showExperience" class="fixed inset-0 z-[100] bg-brand-black flex flex-col overflow-hidden">
+                
+                <div class="absolute top-0 left-0 w-full z-20 flex justify-between items-center p-6 bg-gradient-to-b from-black/80 to-transparent">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        <span class="text-[10px] uppercase tracking-widest text-white/80">Demo Privada 1:1</span>
+                    </div>
+                    <button @click="closeExperience" class="text-white hover:text-brand-gold transition text-sm uppercase tracking-widest border border-white/20 px-4 py-1 rounded-full hover:bg-white/10">
+                        Cerrar X
+                    </button>
+                </div>
+
+                <div class="flex-1 relative flex items-center justify-center">
+                    
+                    <div class="absolute inset-0 transition-all duration-1000" :class="videoEnded ? 'blur-xl opacity-20 scale-105' : 'opacity-100'">
+                        <video ref="videoRef" @timeupdate="handleTimeUpdate" @ended="handleVideoEnd" 
+                               src="https://videos.pexels.com/video-files/3205634/3205634-hd_1920_1080_25fps.mp4" 
+                               class="w-full h-full object-cover" autoplay playsinline muted></video>
+                        <div class="absolute inset-0 bg-black/30"></div>
+                    </div>
+
+                    <div v-if="!videoEnded" class="absolute inset-0 z-10 flex flex-col justify-end pb-20 px-6 pointer-events-none">
+                        
+                        <transition enter-active-class="transition duration-500" enter-from-class="opacity-0 translate-y-4" enter-to-class="opacity-100">
+                            <div v-if="videoCurrentTime > 8" class="mb-4 self-center bg-black/60 backdrop-blur-md border-l-2 border-brand-gold px-6 py-3 rounded-r-lg max-w-md">
+                                <p class="text-brand-gold text-xs font-bold uppercase mb-1">Dato Clave:</p>
+                                <p class="text-white text-sm">El 85% de los desarrollos recuperan la inversión en la 3ra venta.</p>
+                            </div>
+                        </transition>
+
+                        <transition enter-active-class="transition duration-500" enter-from-class="opacity-0 scale-90" enter-to-class="opacity-100 scale-100">
+                            <div v-if="videoCurrentTime > 4" class="self-center pointer-events-auto">
+                                <button @click="skipToBooking" class="group flex items-center gap-3 bg-brand-gold text-brand-black px-8 py-3 rounded-sm font-bold uppercase tracking-widest hover:bg-white transition duration-300 shadow-glow">
+                                    <span>Agendar Demo Ahora</span>
+                                    <svg class="w-4 h-4 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                </button>
+                                <p class="text-center text-[10px] text-white/60 mt-2 uppercase tracking-widest">Sesión Zoom de 20 Minutos</p>
+                            </div>
+                        </transition>
+                    </div>
+
+                    <transition enter-active-class="transition duration-700 delay-300" enter-from-class="opacity-0 translate-y-10" enter-to-class="opacity-100 translate-y-0">
+                        <div v-if="videoEnded" class="relative z-30 w-full max-w-5xl h-[80vh] bg-brand-card/90 backdrop-blur-xl border border-brand-gold/20 shadow-2xl rounded-xl flex overflow-hidden">
+                            
+                            <div class="hidden md:flex w-1/3 bg-brand-black/50 p-8 flex-col justify-between border-r border-white/5">
+                                <div>
+                                    <div class="w-12 h-12 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold text-2xl mb-6">🎥</div>
+                                    <h3 class="font-serif text-2xl text-white mb-2">Discovery Call</h3>
+                                    <p class="text-brand-muted text-sm mb-6">Agenda una demostración en vivo de la plataforma Freedom Lifestyle Key.</p>
+                                    <ul class="space-y-4 text-sm text-gray-400">
+                                        <li class="flex gap-2 items-center"><span class="text-brand-gold">✓</span> Análisis de tu inventario</li>
+                                        <li class="flex gap-2 items-center"><span class="text-brand-gold">✓</span> Proyección de ROI</li>
+                                        <li class="flex gap-2 items-center"><span class="text-brand-gold">✓</span> Demo del Concierge</li>
+                                    </ul>
+                                </div>
+                                <div class="text-[10px] text-gray-600 uppercase tracking-widest">
+                                    Duración: 20 Minutos
+                                </div>
+                            </div>
+
+                            <div class="w-full md:w-2/3 p-8 relative overflow-y-auto">
+                                
+                                <div v-if="bookingStep === 1">
+                                    <h4 class="text-white font-serif text-xl mb-6 text-center">Selecciona una fecha</h4>
+                                    <div class="flex justify-between items-center mb-4 text-brand-gold text-sm font-bold uppercase tracking-widest px-2">
+                                        <button class="hover:text-white">&lt;</button>
+                                        <span>{{ currentMonth }}</span>
+                                        <button class="hover:text-white">&gt;</button>
+                                    </div>
+                                    <div class="grid grid-cols-7 gap-2 text-center text-xs text-gray-500 mb-2">
+                                        <span v-for="d in ['D','L','M','M','J','V','S']">{{d}}</span>
+                                    </div>
+                                    <div class="grid grid-cols-7 gap-2">
+                                        <button v-for="day in calendarDays" 
+                                                @click="selectDate(day)"
+                                                :disabled="!day.available"
+                                                :class="day.available 
+                                                    ? 'bg-white/5 hover:bg-brand-gold hover:text-black text-white cursor-pointer border border-white/10' 
+                                                    : 'text-gray-700 cursor-not-allowed'"
+                                                class="aspect-square rounded-sm flex items-center justify-center transition duration-200">
+                                            {{ day.day }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div v-if="bookingStep === 2">
+                                    <button @click="bookingStep = 1" class="text-xs text-brand-gold hover:underline mb-4">← Volver al calendario</button>
+                                    <h4 class="text-white font-serif text-xl mb-2">Horarios Disponibles</h4>
+                                    <p class="text-brand-muted text-sm mb-6">Para el {{ selectedDate }}</p>
+                                    
+                                    <div class="grid grid-cols-1 gap-3">
+                                        <button v-for="time in availableHours" @click="selectTime(time)" class="group flex items-center justify-between p-4 border border-white/10 rounded-sm hover:border-brand-gold hover:bg-brand-gold/10 transition">
+                                            <span class="text-white font-bold">{{ time }}</span>
+                                            <span class="text-xs text-brand-gold opacity-0 group-hover:opacity-100 uppercase tracking-widest transition">Confirmar</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div v-if="bookingStep === 3">
+                                    <button @click="bookingStep = 2" class="text-xs text-brand-gold hover:underline mb-4">← Cambiar hora</button>
+                                    <h4 class="text-white font-serif text-xl mb-2">Detalles Finales</h4>
+                                    <p class="text-brand-muted text-sm mb-6">{{ selectedDate }} a las {{ selectedTime }}</p>
+                                    
+                                    <form @submit.prevent="confirmBooking" class="space-y-4">
+                                        <input type="text" placeholder="Nombre Completo" required class="w-full bg-black/30 border border-white/10 p-4 text-white focus:border-brand-gold outline-none rounded-sm">
+                                        <input type="email" placeholder="Email Corporativo" required class="w-full bg-black/30 border border-white/10 p-4 text-white focus:border-brand-gold outline-none rounded-sm">
+                                        <textarea placeholder="¿Alguna duda específica sobre tu inventario?" class="w-full bg-black/30 border border-white/10 p-4 text-white focus:border-brand-gold outline-none rounded-sm h-24"></textarea>
+                                        
+                                        <button type="submit" class="w-full bg-brand-gold text-brand-black font-bold py-4 uppercase tracking-widest hover:bg-white transition duration-300">
+                                            Confirmar Reunión Zoom
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div v-if="bookingStep === 4" class="h-full flex flex-col items-center justify-center text-center">
+                                    <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 text-4xl mb-6">
+                                        ✓
+                                    </div>
+                                    <h4 class="text-white font-serif text-2xl mb-2">¡Confirmado!</h4>
+                                    <p class="text-gray-400 max-w-xs mx-auto">Te hemos enviado la invitación de calendario a tu correo.</p>
+                                    <p class="text-xs text-brand-gold mt-8 animate-pulse">Redirigiendo al sitio...</p>
+                                </div>
+
+                            </div>
+                        </div>
+                    </transition>
+
+                </div>
+            </div>
+        </transition>
+
     </div>
 
     <script>
-        const { createApp, ref, onMounted, onUnmounted } = Vue;
+        const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
 
         createApp({
             setup() {
-                // Estado Reactivo
-                const mode = ref('A'); // Default: Visión (Director)
-                const showModal = ref(false);
+                // --- STATE GLOBAL ---
+                const mode = ref('A'); 
                 const scrolled = ref(false);
+                const showModal = ref(false); // Modal simple (Lead)
+                
+                // --- STATE DE LA EXPERIENCIA (VIDEO + BOOKING) ---
+                const showExperience = ref(false); // Abre la PWA overlay
+                const videoRef = ref(null);
+                const videoCurrentTime = ref(0);
+                const videoDuration = ref(0);
+                const videoEnded = ref(false);
+                
+                // --- STATE DEL CALENDARIO (CALENDLY STYLE) ---
+                const bookingStep = ref(1); // 1: Calendario, 2: Horas, 3: Form, 4: Success
+                const selectedDate = ref(null);
+                const selectedTime = ref(null);
+                
+                // Datos simulados del Calendario
+                const currentMonth = "Octubre 2025";
+                const calendarDays = Array.from({length: 31}, (_, i) => ({
+                    day: i + 1,
+                    available: [2, 4, 5, 8, 10, 12, 15, 18, 20, 24].includes(i + 1), // Días aleatorios disponibles
+                    weekday: ['L','M','M','J','V','S','D'][i % 7]
+                }));
+                const availableHours = ["09:00 AM", "10:30 AM", "11:00 AM", "02:00 PM", "04:30 PM"];
 
-                // Scroll Listener para Navbar
-                const handleScroll = () => {
-                    scrolled.value = window.scrollY > 50;
+                // --- LOGICA DE SCROLL ---
+                const handleScroll = () => scrolled.value = window.scrollY > 50;
+                onMounted(() => window.addEventListener('scroll', handleScroll));
+                onUnmounted(() => window.removeEventListener('scroll', handleScroll));
+
+                // --- LOGICA DE VIDEO PROGRESIVO ---
+                const openExperience = () => {
+                    showExperience.value = true;
+                    // Reset
+                    bookingStep.value = 1; 
+                    videoEnded.value = false;
+                    setTimeout(() => {
+                        if(videoRef.value) videoRef.value.play();
+                    }, 500);
                 };
 
-                onMounted(() => {
-                    window.addEventListener('scroll', handleScroll);
-                });
+                const closeExperience = () => {
+                    showExperience.value = false;
+                    if(videoRef.value) videoRef.value.pause();
+                };
 
-                onUnmounted(() => {
-                    window.removeEventListener('scroll', handleScroll);
-                });
+                const handleTimeUpdate = () => {
+                    if(videoRef.value) {
+                        videoCurrentTime.value = videoRef.value.currentTime;
+                        videoDuration.value = videoRef.value.duration;
+                    }
+                };
 
-                // DICCIONARIO DE CONTENIDOS (A/B/C) - SIN LA PALABRA AMENIDAD
+                const handleVideoEnd = () => {
+                    videoEnded.value = true;
+                    // Automáticamente pasar al booking si termina el video
+                    // Opcional: dejar que el usuario decida
+                };
+
+                const skipToBooking = () => {
+                    if(videoRef.value) videoRef.value.pause();
+                    videoEnded.value = true;
+                };
+
+                // --- LOGICA DE BOOKING ---
+                const selectDate = (day) => {
+                    if(!day.available) return;
+                    selectedDate.value = `${day.day} de ${currentMonth}`;
+                    bookingStep.value = 2; // Ir a horas
+                };
+                
+                const selectTime = (time) => {
+                    selectedTime.value = time;
+                    bookingStep.value = 3; // Ir a formulario
+                };
+
+                const confirmBooking = () => {
+                    // Aquí iría la integración real con API
+                    bookingStep.value = 4; // Success
+                    setTimeout(() => {
+                        closeExperience();
+                        alert("¡Reunión Agendada! Te enviamos el acceso a Zoom.");
+                    }, 3000);
+                };
+
+                // --- CONTENIDO DE TEXTOS (Igual que antes) ---
                 const content = {
-                    A: { // VISIÓN (Director Innovador) -> ENFOQUE: EL ESTÁNDAR
+                    A: { 
                         hero: {
                             tagline: "El Nuevo Estándar Inmobiliario",
                             headline: "Casas con <span class='text-gold-gradient'>Pasaporte Global.</span>",
@@ -396,7 +596,7 @@
                             title: "No vendas M², vende Pertenencia",
                             description: [
                                 "El mercado ha cambiado. El comprador actual no solo busca dónde dormir, busca a dónde ir.",
-                                "Freedom Lifestyle Key™ no es un simple agregado; es una credencial de ciudadano global que otorgas junto con las llaves de la propiedad. Elevas instantáneamente la jerarquía de tu marca."
+                                "Freedom Lifestyle Key™ no es un simple agregado; es una credencial de ciudadano global."
                             ]
                         },
                         benefits: {
@@ -405,7 +605,7 @@
                             b3: { title: "Fidelización", text: "Tus clientes recordarán tu firma cada vez que usen su llave en París, Tulum o Nueva York." }
                         }
                     },
-                    B: { // NEGOCIO (Director Financiero / Ventas) -> ENFOQUE: EL INSTRUMENTO
+                    B: { 
                         hero: {
                             tagline: "Acelerador Comercial",
                             headline: "Convierte la Objeción de Precio en <span class='text-gold-gradient'>Oportunidad.</span>",
@@ -416,7 +616,7 @@
                             title: "El Cierre Perfecto",
                             description: [
                                 "En un mercado saturado, el descuento es el recurso del desesperado. Freedom Lifestyle Key™ es tu as bajo la manga.",
-                                "Otorga un activo financiero de alto valor para el cliente (ahorros masivos en viajes) con un costo de implementación inteligente para ti. Cierra el trato sin quemar la utilidad."
+                                "Otorga un activo financiero de alto valor para el cliente con costo marginal para ti."
                             ]
                         },
                         benefits: {
@@ -425,7 +625,7 @@
                             b3: { title: "Arma de Ventas", text: "Empodera a tus vendedores con un argumento de cierre exclusivo que la competencia no tiene." }
                         }
                     },
-                    C: { // EMPÁTICO (Cliente Final / Marketing) -> ENFOQUE: EL PRIVILEGIO
+                    C: {
                         hero: {
                             tagline: "Estilo de Vida Sin Límites",
                             headline: "Que su Inversión no frene sus <span class='text-gold-gradient'>Viajes.</span>",
@@ -436,36 +636,28 @@
                             title: "La Libertad de Tenerlo Todo",
                             description: [
                                 "Tus clientes temen que la hipoteca acabe con sus vacaciones. Elimina ese miedo para siempre.",
-                                "Al entregar Freedom Lifestyle Key™, les dices: 'Puedes tener tu casa y también el mundo'. Es el vínculo emocional que destraba la firma y valida su esfuerzo."
+                                "Al entregar Freedom Lifestyle Key™, les dices: 'Puedes tener tu casa y también el mundo'."
                             ]
                         },
                         benefits: {
-                            b1: { title: "Conexión Emocional", text: "Ataca el deseo real de la familia: disfrutar la vida y coleccionar momentos, no solo pagar cuentas." },
+                            b1: { title: "Conexión Emocional", text: "Ataca el deseo real de la familia: disfrutar la vida y coleccionar momentos." },
                             b2: { title: "Justificación Racional", text: "El ahorro acumulado en futuros viajes ayuda a racionalizar el costo de la propiedad." },
                             b3: { title: "Embajadores de Marca", text: "Un cliente que viaja feliz es un cliente que presume tu desarrollo a sus círculos sociales." }
                         }
                     }
                 };
 
-                // Funciones
-                const setMode = (newMode) => mode.value = newMode;
-                const openModal = () => showModal.value = true;
-                const closeModal = () => showModal.value = false;
-                const submitForm = () => {
-                    // Simulación de envío
-                    alert("Gracias. Solicitud enviada al Concierge B2B para validación.");
-                    closeModal();
-                };
-
                 return {
-                    mode,
-                    content,
-                    showModal,
-                    scrolled,
-                    setMode,
-                    openModal,
-                    closeModal,
-                    submitForm
+                    mode, content, showModal, scrolled,
+                    // Experience State
+                    showExperience, videoRef, videoEnded, videoCurrentTime,
+                    bookingStep, selectedDate, selectedTime, calendarDays, availableHours, currentMonth,
+                    // Actions
+                    setMode: (m) => mode.value = m,
+                    openModal: () => showModal.value = true,
+                    closeModal: () => showModal.value = false,
+                    openExperience, closeExperience, handleTimeUpdate, handleVideoEnd, skipToBooking,
+                    selectDate, selectTime, confirmBooking
                 };
             }
         }).mount('#app');
