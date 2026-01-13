@@ -278,8 +278,8 @@ Próximo paso: Ejecuta setup.bat o setup.sh
 📝 ÚLTIMA ACTUALIZACIÓN
 =====================================
 
-Fecha: 13 de Enero, 2026
-Versión: 1.0.0
+Fecha: 14 de Enero, 2026
+Versión: 1.0.1
 Estado: Completado ✅
 
 =====================================

@@ -5,7 +5,7 @@ SISTEMA DE RESERVAS TIPO CALENDLY
 ================================
 
 Proyecto Completado Exitosamente ✅
-Versión 1.0.0 - 13 de Enero, 2026
+Versión 1.0.1 - 14 de Enero, 2026
 
 ================================
 📚 POR DÓNDE EMPIEZO
@@ -358,7 +358,7 @@ Tercer paso: Abre index.html
 ================================
 
 Proyecto: Freedom Lifestyle Key
-Versión: 1.0.0
+Versión: 1.0.1
 Creado: 13 de Enero, 2026
 Estado: ✅ COMPLETADO
 Licencia: © 2026 - Propietaria

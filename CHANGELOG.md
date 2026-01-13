@@ -1,5 +1,13 @@
 # 📝 CHANGELOG - Freedom Lifestyle Key
 
+## Versión 1.0.1 - Refinamiento Visual (Fondos y Animaciones)
+
+### 🎨 Diseño
+- ✅ **Fondos rediseñados** con patrones SVG sutiles (micro-puntos, líneas) y máscaras de opacidad.
+- ✅ **Animación de footer** con flujo continuo (`footerFlow`) para un acabado cinemático.
+- ✅ **Gradientes cónicos** en sección de ventajas para mayor profundidad y efecto 3D.
+- ✅ **Header spotlight** mejorado con gradientes radiales más limpios.
+
 ## Versión 1.0.0 - Sistema Completo de Reservas
 
 ### ✨ Features Implementadas
@@ -143,7 +151,7 @@ Desarrollado con:
 ---
 
 **Fecha de Creación:** 13 de Enero, 2026
-**Última Actualización:** 13 de Enero, 2026
-**Versión Actual:** 1.0.0
+**Última Actualización:** 14 de Enero, 2026
+**Versión Actual:** 1.0.1
 
 Para reportar bugs o sugerir features, contacta al equipo de desarrollo.
