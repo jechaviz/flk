@@ -103,6 +103,198 @@
         ::-webkit-scrollbar-track { background: #0B0F19; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #C5A059; }
+
+        /* ===== FONDOS DE SECCIONES PREMIUM ===== */
+        
+        /* Fondo Hero con patrón sutil */
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(197, 160, 89, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 0, 139, 0.02) 0%, transparent 50%);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        /* Sección Concepto - Fondo con patrón diagonal elegante */
+        #concepto::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #050505 0%, #0B0F19 50%, #050505 100%);
+            opacity: 0.6;
+            z-index: 0;
+        }
+
+        #concepto::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 100px, rgba(197, 160, 89, 0.02) 100px, rgba(197, 160, 89, 0.02) 200px),
+                radial-gradient(circle at 100% 0%, rgba(197, 160, 89, 0.05) 0%, transparent 50%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Sección Ventajas - Fondo con capas */
+        #ventajas::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse 800px 400px at center, rgba(197, 160, 89, 0.04) 0%, transparent 70%),
+                radial-gradient(ellipse 600px 600px at 30% 50%, rgba(139, 0, 139, 0.02) 0%, transparent 50%),
+                linear-gradient(to bottom, #0B0F19, #050505);
+            z-index: 0;
+        }
+
+        #ventajas::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(90deg, transparent 0%, rgba(197, 160, 89, 0.02) 50%, transparent 100%),
+                repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(197, 160, 89, 0.01) 80px, rgba(197, 160, 89, 0.01) 160px);
+            z-index: 1;
+            pointer-events: none;
+            animation: subtleShift 20s ease-in-out infinite;
+        }
+
+        /* Footer - Fondo premium con movimiento sutil */
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(135deg, #020202 0%, #0a0e15 50%, #020202 100%),
+                radial-gradient(circle at top left, rgba(197, 160, 89, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at bottom right, rgba(139, 0, 139, 0.03) 0%, transparent 60%);
+            z-index: 0;
+        }
+
+        footer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 120px, rgba(197, 160, 89, 0.015) 120px, rgba(197, 160, 89, 0.015) 240px),
+                repeating-linear-gradient(-45deg, transparent, transparent 120px, rgba(139, 0, 139, 0.01) 120px, rgba(139, 0, 139, 0.01) 240px);
+            z-index: 1;
+            pointer-events: none;
+            animation: patternFloat 30s ease-in-out infinite;
+        }
+
+        /* ===== ANIMACIONES FOOTER ===== */
+        
+        .footer-title {
+            animation: textFadeInUp 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            letter-spacing: 0.02em;
+        }
+
+        .footer-description {
+            animation: textFadeInUp 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s backwards;
+        }
+
+        .footer-button {
+            animation: textFadeInUp 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
+        }
+
+        .footer-credit {
+            animation: fadeInScaleDelayed 1.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s backwards;
+        }
+
+        .footer-brand {
+            position: relative;
+            display: inline-block;
+            animation: shimmerBrand 3s ease-in-out infinite 0.5s;
+        }
+
+        @keyframes textFadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInScaleDelayed {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @keyframes shimmerBrand {
+            0%, 100% {
+                opacity: 0.6;
+                color: #E2E8F0;
+            }
+            50% {
+                opacity: 1;
+                color: #C5A059;
+            }
+        }
+
+        @keyframes subtleShift {
+            0%, 100% {
+                transform: translateX(0) translateY(0);
+            }
+            50% {
+                transform: translateX(10px) translateY(-5px);
+            }
+        }
+
+        @keyframes patternFloat {
+            0%, 100% {
+                opacity: 0.3;
+                transform: translateY(0);
+            }
+            50% {
+                opacity: 0.6;
+                transform: translateY(-5px);
+            }
+        }
+
+        /* Asegurar que las secciones tengan posición relativa para los ::before y ::after */
+        #concepto, #ventajas, footer {
+            position: relative;
+        }
+
+        #concepto > *, #ventajas > *, footer > * {
+            position: relative;
+            z-index: 10;
+        }
     </style>
 </head>
 
@@ -328,21 +520,21 @@
 
         <footer class="bg-[#020202] pt-24 pb-12 border-t border-white/5">
             <div class="max-w-4xl mx-auto px-6 text-center">
-                <h2 class="font-serif text-3xl md:text-4xl text-white mb-6">Eleva el Estándar de tu Inventario</h2>
-                <p class="text-brand-muted mb-12 max-w-lg mx-auto font-light leading-relaxed">
+                <h2 class="font-serif text-3xl md:text-4xl text-white mb-6 footer-title">Eleva el Estándar de tu Inventario</h2>
+                <p class="text-brand-muted mb-12 max-w-lg mx-auto font-light leading-relaxed footer-description">
                     Trabajamos exclusivamente con desarrollos seleccionados para mantener el prestigio del programa.
                 </p>
                 
-                <button @click="directToBooking" class="bg-transparent border border-brand-gold text-brand-gold px-12 py-4 font-serif text-sm tracking-[0.2em] uppercase hover:bg-brand-gold hover:text-brand-black transition duration-300 shadow-glow hover:shadow-glow-strong hover:scale-105 rounded-sm font-bold">
+                <button @click="directToBooking" class="bg-transparent border border-brand-gold text-brand-gold px-12 py-4 font-serif text-sm tracking-[0.2em] uppercase hover:bg-brand-gold hover:text-brand-black transition duration-300 shadow-glow hover:shadow-glow-strong hover:scale-105 rounded-sm font-bold footer-button">
                     Solicitar Alianza
                 </button>
 
-                <div class="mt-24 pt-8 border-t border-white/5 flex flex-col items-center gap-3">
+                <div class="mt-24 pt-8 border-t border-white/5 flex flex-col items-center gap-3 footer-credit">
                     <p class="text-[10px] text-gray-600 uppercase tracking-[0.1em]">Un producto exclusivo</p>
                     <div class="flex items-center gap-2 opacity-40 hover:opacity-80 transition duration-500">
                         <span class="text-xs text-gray-400 font-serif italic">by</span>
-                        <span class="text-xs text-gray-300 font-bold tracking-widest uppercase">Freedom Vacation Systems</span>
-                        </div>
+                        <span class="footer-brand text-xs text-gray-300 font-bold tracking-widest uppercase">Freedom Vacation Systems</span>
+                    </div>
                     <p class="text-[9px] text-gray-800 mt-2">© 2026 Freedom Lifestyle Key. Derechos Reservados.</p>
                 </div>
             </div>
