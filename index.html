@@ -209,9 +209,28 @@
                         <div class="absolute inset-0 glass-panel rounded-xl transform rotate-1 group-hover:rotate-0 transition duration-700 border-brand-gold/10"></div>
                         
                         <div class="absolute inset-0 flex items-center justify-center transform group-hover:scale-105 transition duration-700">
-                            <img src="https://via.placeholder.com/800x450/000000/C5A059?text=Insert+Gold+Key+PNG+Here" 
-                                 alt="Freedom Lifestyle Key Render" 
-                                 class="w-3/4 h-auto drop-shadow-[0_20px_50px_rgba(197,160,89,0.25)] opacity-90">
+                            <svg class="w-3/4 h-auto drop-shadow-[0_20px_50px_rgba(197,160,89,0.25)] opacity-90" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                                <defs>
+                                    <linearGradient id="keyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#E5C585;stop-opacity:1" />
+                                        <stop offset="50%" style="stop-color:#C5A059;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#8A6E36;stop-opacity:1" />
+                                    </linearGradient>
+                                    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                                        <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.3" flood-color="#000000"/>
+                                    </filter>
+                                </defs>
+                                <!-- Llave premium moderna -->
+                                <g transform="translate(200, 150)" filter="url(#shadow)">
+                                    <circle cx="0" cy="-60" r="35" fill="url(#keyGradient)" stroke="#fcf6ba" stroke-width="1.5" opacity="0.9"/>
+                                    <path d="M 0 -25 L 0 40 Q 0 50 -10 50 L -60 50 Q -70 50 -70 40 L -70 30" fill="none" stroke="url(#keyGradient)" stroke-width="12" stroke-linecap="round" opacity="0.9"/>
+                                    <rect x="-68" y="25" width="12" height="20" fill="url(#keyGradient)" opacity="0.9"/>
+                                    <circle cx="-50" cy="35" r="4" fill="#fcf6ba" opacity="0.7"/>
+                                </g>
+                                <!-- Texto -->
+                                <text x="200" y="280" text-anchor="middle" font-size="20" font-weight="bold" fill="#C5A059" font-family="Playfair Display, serif">Freedom Key</text>
+                                <text x="200" y="300" text-anchor="middle" font-size="12" fill="#E2E8F0" font-family="Lato, sans-serif" opacity="0.8">Acceso Global Premium</text>
+                            </svg>
                             
                             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 bg-brand-gold/20 blur-3xl rounded-full animate-pulse"></div>
                         </div>
@@ -386,9 +405,22 @@
                 <div class="flex-1 relative flex items-center justify-center">
                     
                     <div class="absolute inset-0 transition-all duration-1000" :class="videoEnded ? 'blur-xl opacity-20 scale-105' : 'opacity-100'">
-                        <video ref="videoRef" @timeupdate="handleTimeUpdate" @ended="handleVideoEnd" 
-                               src="https://videos.pexels.com/video-files/3205634/3205634-hd_1920_1080_25fps.mp4" 
-                               class="w-full h-full object-cover" autoplay playsinline muted></video>
+                        <div ref="videoRef" class="w-full h-full bg-gradient-to-br from-brand-dark to-brand-black relative overflow-hidden">
+                            <!-- Fallback visual cuando el video no carga -->
+                            <svg class="w-full h-full" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+                                <defs>
+                                    <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#0B0F19;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#050505;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <rect width="1920" height="1080" fill="url(#heroGrad)"/>
+                                <circle cx="960" cy="540" r="300" fill="none" stroke="#C5A059" stroke-width="2" opacity="0.2"/>
+                                <circle cx="960" cy="540" r="200" fill="none" stroke="#C5A059" stroke-width="1" opacity="0.1"/>
+                                <text x="960" y="540" text-anchor="middle" dominant-baseline="middle" font-size="48" fill="#C5A059" font-family="Playfair Display, serif" opacity="0.5">Freedom Lifestyle Key</text>
+                                <text x="960" y="620" text-anchor="middle" font-size="24" fill="#E2E8F0" font-family="Lato, sans-serif" opacity="0.6">Experiencia Global de Acceso</text>
+                            </svg>
+                        </div>
                         <div class="absolute inset-0 bg-black/30"></div>
                     </div>
 
@@ -618,6 +650,71 @@
                 // --- STATE DE LA GALERIA ---
                 const showGallery = ref(false);
                 const currentImageIndex = ref(0);
+                
+                // --- CONTENT DATA (narrativas de venta) ---
+                const content = ref({
+                    A: { 
+                        hero: {
+                            tagline: "El Nuevo Estándar Inmobiliario",
+                            headline: "Casas con <span class='text-gold-gradient'>Pasaporte Global.</span>",
+                            subtext: "Diferencia tu desarrollo integrando un nivel de vida superior. El distintivo que convierte a compradores indecisos en residentes orgullosos.",
+                            ctaPrimary: "Innovar mi Oferta"
+                        },
+                        product: {
+                            title: "No vendas M², vende Pertenencia",
+                            description: [
+                                "El mercado ha cambiado. El comprador actual no solo busca dónde dormir, busca a dónde ir.",
+                                "Freedom Lifestyle Key™ no es un simple agregado; es una credencial de ciudadano global."
+                            ]
+                        },
+                        benefits: {
+                            b1: { title: "Diferenciación Real", text: "Sal del océano rojo de las comparaciones físicas. Sé el único en tu zona que ofrece el mundo entero." },
+                            b2: { title: "Valor de Marca", text: "Asocia tu desarrollo con lujo, libertad y acceso, no con descuentos y regateo." },
+                            b3: { title: "Fidelización", text: "Tus clientes recordarán tu firma cada vez que usen su llave en París, Tulum o Nueva York." }
+                        }
+                    },
+                    B: { 
+                        hero: {
+                            tagline: "Acelerador Comercial",
+                            headline: "Convierte la Objeción de Precio en <span class='text-gold-gradient'>Oportunidad.</span>",
+                            subtext: "Protege tus márgenes ofreciendo un activo de valor percibido superior al descuento. El instrumento definitivo para acelerar la absorción de inventario.",
+                            ctaPrimary: "Acelerar Cierres"
+                        },
+                        product: {
+                            title: "El Cierre Perfecto",
+                            description: [
+                                "En un mercado saturado, el descuento es el recurso del desesperado. Freedom Lifestyle Key™ es tu as bajo la manga.",
+                                "Otorga un activo financiero de alto valor para el cliente con costo marginal para ti."
+                            ]
+                        },
+                        benefits: {
+                            b1: { title: "Velocidad de Absorción", text: "Reduce el ciclo de decisión del cliente dándole una razón poderosa para firmar HOY." },
+                            b2: { title: "Protección de Margen", text: "Es más rentable otorgar una membresía global que bajar el 5% del precio de lista." },
+                            b3: { title: "Arma de Ventas", text: "Empodera a tus vendedores con un argumento de cierre exclusivo que la competencia no tiene." }
+                        }
+                    },
+                    C: {
+                        hero: {
+                            tagline: "Estilo de Vida Sin Límites",
+                            headline: "Que su Inversión no frene sus <span class='text-gold-gradient'>Viajes.</span>",
+                            subtext: "Dales la seguridad de un hogar y la libertad del mundo. El privilegio de tarifas netas que justifica y premia la inversión inmobiliaria.",
+                            ctaPrimary: "Verificar Disponibilidad"
+                        },
+                        product: {
+                            title: "La Libertad de Tenerlo Todo",
+                            description: [
+                                "Tus clientes temen que la hipoteca acabe con sus vacaciones. Elimina ese miedo para siempre.",
+                                "Al entregar Freedom Lifestyle Key™, les dices: 'Puedes tener tu casa y también el mundo'."
+                            ]
+                        },
+                        benefits: {
+                            b1: { title: "Conexión Emocional", text: "Ataca el deseo real de la familia: disfrutar la vida y coleccionar momentos." },
+                            b2: { title: "Justificación Racional", text: "El ahorro acumulado en futuros viajes ayuda a racionalizar el costo de la propiedad." },
+                            b3: { title: "Embajadores de Marca", text: "Un cliente que viaja feliz es un cliente que presume tu desarrollo a sus círculos sociales." }
+                        }
+                    }
+                });
+                
                 const images = [
                     {
                         title: "Freedom Lifestyle Key - Concepto 1",
@@ -731,20 +828,29 @@
                 // --- FUNCIONES ---
                 const handleScroll = () => scrolled.value = window.scrollY > 50;
                 
+                let videoInterval = null;
+                
                 const openExperience = () => {
                     showExperience.value = true;
                     bookingStep.value = 1;
                     videoEnded.value = false;
+                    videoCurrentTime.value = 0;
                     currentMonthOffset.value = 0;
                     loadCalendarData();
-                    setTimeout(() => {
-                        if(videoRef.value) videoRef.value.play();
-                    }, 500);
+                    // Simular reproducción de video con intervalo
+                    if(videoInterval) clearInterval(videoInterval);
+                    videoInterval = setInterval(() => {
+                        handleTimeUpdate();
+                        if(videoCurrentTime.value >= 20) {
+                            clearInterval(videoInterval);
+                            handleVideoEnd();
+                        }
+                    }, 16); // ~60fps
                 };
 
                 const closeExperience = () => {
                     showExperience.value = false;
-                    if(videoRef.value) videoRef.value.pause();
+                    if(videoInterval) clearInterval(videoInterval);
                     selectedDate.value = null;
                     selectedTime.value = null;
                     bookingData.value = {
@@ -758,9 +864,10 @@
                 };
 
                 const handleTimeUpdate = () => {
-                    if(videoRef.value) {
-                        videoCurrentTime.value = videoRef.value.currentTime;
-                        videoDuration.value = videoRef.value.duration;
+                    // Simular progreso de video (20 segundos totales)
+                    if(videoRef.value && videoCurrentTime.value < 20) {
+                        videoCurrentTime.value += 0.016; // ~60fps
+                        videoDuration.value = 20;
                     }
                 };
 
@@ -896,69 +1003,6 @@
                     nextImage: () => currentImageIndex.value = (currentImageIndex.value + 1) % images.length,
                     prevImage: () => currentImageIndex.value = (currentImageIndex.value - 1 + images.length) % images.length,
                     goToImage: (index) => currentImageIndex.value = index,
-                    // Content data
-                    content: {
-                        A: { 
-                            hero: {
-                                tagline: "El Nuevo Estándar Inmobiliario",
-                                headline: "Casas con <span class='text-gold-gradient'>Pasaporte Global.</span>",
-                                subtext: "Diferencia tu desarrollo integrando un nivel de vida superior. El distintivo que convierte a compradores indecisos en residentes orgullosos.",
-                                ctaPrimary: "Innovar mi Oferta"
-                            },
-                            product: {
-                                title: "No vendas M², vende Pertenencia",
-                                description: [
-                                    "El mercado ha cambiado. El comprador actual no solo busca dónde dormir, busca a dónde ir.",
-                                    "Freedom Lifestyle Key™ no es un simple agregado; es una credencial de ciudadano global."
-                                ]
-                            },
-                            benefits: {
-                                b1: { title: "Diferenciación Real", text: "Sal del océano rojo de las comparaciones físicas. Sé el único en tu zona que ofrece el mundo entero." },
-                                b2: { title: "Valor de Marca", text: "Asocia tu desarrollo con lujo, libertad y acceso, no con descuentos y regateo." },
-                                b3: { title: "Fidelización", text: "Tus clientes recordarán tu firma cada vez que usen su llave en París, Tulum o Nueva York." }
-                            }
-                        },
-                        B: { 
-                            hero: {
-                                tagline: "Acelerador Comercial",
-                                headline: "Convierte la Objeción de Precio en <span class='text-gold-gradient'>Oportunidad.</span>",
-                                subtext: "Protege tus márgenes ofreciendo un activo de valor percibido superior al descuento. El instrumento definitivo para acelerar la absorción de inventario.",
-                                ctaPrimary: "Acelerar Cierres"
-                            },
-                            product: {
-                                title: "El Cierre Perfecto",
-                                description: [
-                                    "En un mercado saturado, el descuento es el recurso del desesperado. Freedom Lifestyle Key™ es tu as bajo la manga.",
-                                    "Otorga un activo financiero de alto valor para el cliente con costo marginal para ti."
-                                ]
-                            },
-                            benefits: {
-                                b1: { title: "Velocidad de Absorción", text: "Reduce el ciclo de decisión del cliente dándole una razón poderosa para firmar HOY." },
-                                b2: { title: "Protección de Margen", text: "Es más rentable otorgar una membresía global que bajar el 5% del precio de lista." },
-                                b3: { title: "Arma de Ventas", text: "Empodera a tus vendedores con un argumento de cierre exclusivo que la competencia no tiene." }
-                            }
-                        },
-                        C: {
-                            hero: {
-                                tagline: "Estilo de Vida Sin Límites",
-                                headline: "Que su Inversión no frene sus <span class='text-gold-gradient'>Viajes.</span>",
-                                subtext: "Dales la seguridad de un hogar y la libertad del mundo. El privilegio de tarifas netas que justifica y premia la inversión inmobiliaria.",
-                                ctaPrimary: "Verificar Disponibilidad"
-                            },
-                            product: {
-                                title: "La Libertad de Tenerlo Todo",
-                                description: [
-                                    "Tus clientes temen que la hipoteca acabe con sus vacaciones. Elimina ese miedo para siempre.",
-                                    "Al entregar Freedom Lifestyle Key™, les dices: 'Puedes tener tu casa y también el mundo'."
-                                ]
-                            },
-                            benefits: {
-                                b1: { title: "Conexión Emocional", text: "Ataca el deseo real de la familia: disfrutar la vida y coleccionar momentos." },
-                                b2: { title: "Justificación Racional", text: "El ahorro acumulado en futuros viajes ayuda a racionalizar el costo de la propiedad." },
-                                b3: { title: "Embajadores de Marca", text: "Un cliente que viaja feliz es un cliente que presume tu desarrollo a sus círculos sociales." }
-                            }
-                        }
-                    }
                 };
             }
         }).mount('#app');
