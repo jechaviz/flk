@@ -285,6 +285,13 @@
                     <span>C: Life (Cliente)</span>
                     <span v-if="mode === 'C'" class="ml-2">●</span>
                 </button>
+                <button v-if="backendReady" @click="setMode('D')" :class="mode === 'D' ? 'bg-brand-magenta text-white shadow-glow' : 'text-gray-500 hover:text-white'" class="px-3 py-2 rounded text-[10px] font-bold transition-all duration-300 flex justify-between items-center tracking-widest uppercase border border-brand-magenta/30">
+                    <span>D: Mi Narrativa</span>
+                    <span v-if="mode === 'D'" class="ml-2">✏</span>
+                </button>
+                <button v-if="!backendReady" class="px-3 py-2 rounded text-[10px] font-bold text-gray-700 uppercase opacity-50 cursor-not-allowed" title="Backend no disponible">
+                    <span>D: Mi Narrativa</span>
+                </button>
             </div>
         </div>
 
@@ -773,6 +780,10 @@
                 const mode = ref('A'); 
                 const scrolled = ref(false);
                 const showModal = ref(false);
+                const backendReady = ref(false);
+                const editingMode = ref(false);
+                const editingField = ref(null);
+                const editingValue = ref('');
                 
                 // --- STATE DE LA EXPERIENCIA (VIDEO + BOOKING) ---
                 const showExperience = ref(false);
@@ -807,6 +818,25 @@
                 // --- STATE DE LA GALERIA ---
                 const showGallery = ref(false);
                 const currentImageIndex = ref(0);
+                
+                // --- STATE DE LA NARRATIVA PERSONALIZADA ---
+                const customNarrative = ref({
+                    hero: {
+                        tagline: '',
+                        headline: '',
+                        subtext: '',
+                        ctaPrimary: ''
+                    },
+                    product: {
+                        title: '',
+                        description: []
+                    },
+                    benefits: {
+                        b1: { title: '', text: '' },
+                        b2: { title: '', text: '' },
+                        b3: { title: '', text: '' }
+                    }
+                });
                 
                 // --- CONTENT DATA (narrativas de venta) ---
                 const content = ref({
@@ -869,7 +899,8 @@
                             b2: { title: "Justificación Racional", text: "El ahorro acumulado en futuros viajes ayuda a racionalizar el costo de la propiedad." },
                             b3: { title: "Embajadores de Marca", text: "Un cliente que viaja feliz es un cliente que presume tu desarrollo a sus círculos sociales." }
                         }
-                    }
+                    },
+                    D: customNarrative
                 });
                 
                 const images = [
@@ -1194,16 +1225,73 @@
                     }
                 };
 
+                // --- FUNCIONES PARA NARRATIVA PERSONALIZADA ---
+                const checkBackendStatus = async () => {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/available-slots/?year=2026&month=1`, {
+                            signal: AbortSignal.timeout(3000)
+                        });
+                        backendReady.value = response.ok;
+                        // Cargar narrativa personalizada del localStorage
+                        const saved = localStorage.getItem('customNarrative');
+                        if (saved) {
+                            customNarrative.value = JSON.parse(saved);
+                            content.value.D = customNarrative.value;
+                        }
+                    } catch (error) {
+                        backendReady.value = false;
+                        console.warn('Backend no disponible para verificación');
+                    }
+                };
+
+                const startEditing = (field) => {
+                    editingField.value = field;
+                    editingValue.value = field;
+                    editingMode.value = true;
+                };
+
+                const saveEdit = () => {
+                    if (editingField.value && editingValue.value) {
+                        // Guardar en la narrativa personalizada
+                        const path = editingField.value.split('.');
+                        let current = customNarrative.value;
+                        for (let i = 0; i < path.length - 1; i++) {
+                            current = current[path[i]];
+                        }
+                        current[path[path.length - 1]] = editingValue.value;
+                        
+                        // Sincronizar con content
+                        content.value.D = customNarrative.value;
+                        
+                        // Guardar en localStorage
+                        localStorage.setItem('customNarrative', JSON.stringify(customNarrative.value));
+                        
+                        editingMode.value = false;
+                        editingField.value = null;
+                    }
+                };
+
+                const cancelEdit = () => {
+                    editingMode.value = false;
+                    editingField.value = null;
+                    editingValue.value = '';
+                };
+
                 // --- LOGICA DE SCROLL ---
                 onMounted(() => {
                     window.addEventListener('scroll', handleScroll);
+                    checkBackendStatus();
+                    // Verificar estado del backend cada 30 segundos
+                    setInterval(checkBackendStatus, 30000);
                 });
                 onUnmounted(() => {
                     window.removeEventListener('scroll', handleScroll);
                 });
 
                 return {
-                    mode, content, showModal, scrolled,
+                    mode, content, showModal, scrolled, backendReady,
+                    editingMode, editingField, editingValue,
+                    customNarrative,
                     // Experience State
                     showExperience, videoRef, videoEnded, videoCurrentTime,
                     bookingStep, selectedDate, selectedTime,
@@ -1218,6 +1306,8 @@
                     selectDateFromBackend, selectTime, confirmBooking,
                     previousMonth, nextMonth,
                     formatTime, formatTimeRange,
+                    // Narrative Editing Actions
+                    startEditing, saveEdit, cancelEdit,
                     // Gallery Actions
                     showGallery, currentImageIndex, images,
                     openGallery: () => { showGallery.value = true; currentImageIndex.value = 0; },
