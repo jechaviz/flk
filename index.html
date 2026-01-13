@@ -47,6 +47,7 @@
     </script>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="config.js"></script>
 
     <style>
         /* Estilos Personalizados High-End */
@@ -145,11 +146,11 @@
                 <div class="hidden md:flex items-center gap-10">
                     <a href="#concepto" class="text-[11px] uppercase tracking-[0.2em] text-brand-muted hover:text-brand-gold transition-colors duration-300">El Concepto</a>
                     <a href="#ventajas" class="text-[11px] uppercase tracking-[0.2em] text-brand-muted hover:text-brand-gold transition-colors duration-300">Ventajas</a>
-                    <button @click="openGallery" class="border border-brand-gold/40 px-6 py-2 rounded-sm text-[10px] font-bold text-brand-gold uppercase tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition duration-300 shadow-glow hover:shadow-glow-strong">
+                    <button @click="openGallery" class="border border-brand-gold/40 px-6 py-2 rounded-sm text-[10px] font-bold text-brand-gold uppercase tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition duration-300 shadow-glow hover:shadow-glow-strong hover:scale-105">
                         Ver Galería
                     </button>
-                    <button @click="openModal" class="border border-brand-gold/40 px-6 py-2 rounded-sm text-[10px] font-bold text-brand-gold uppercase tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition duration-300 shadow-glow hover:shadow-glow-strong">
-                        Acceso Developers
+                    <button @click="openExperience" class="border border-brand-gold/40 px-6 py-2 rounded-sm text-[10px] font-bold text-brand-gold uppercase tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition duration-300 shadow-glow hover:shadow-glow-strong hover:scale-105">
+                        Agendar Demo
                     </button>
                 </div>
             </div>
@@ -180,13 +181,13 @@
                         </p>
 
                         <div class="flex flex-col md:flex-row gap-6 justify-center items-center">
-                            <button @click="openModal" class="group relative px-8 py-4 bg-brand-gold text-brand-black font-serif font-bold text-sm tracking-[0.15em] uppercase overflow-hidden transition-all duration-300 hover:shadow-glow-strong rounded-sm">
+                            <button @click="openExperience" class="group relative px-8 py-4 bg-brand-gold text-brand-black font-serif font-bold text-sm tracking-[0.15em] uppercase overflow-hidden transition-all duration-300 hover:shadow-glow-strong rounded-sm shadow-glow hover:scale-105">
                                 <span class="relative z-10">{{ content[mode].hero.ctaPrimary }}</span>
                                 <div class="absolute inset-0 bg-white/20 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
                             </button>
                             
-                            <button @click="openExperience" class="text-xs text-white uppercase tracking-[0.2em] border-b border-transparent hover:border-brand-gold hover:text-brand-gold transition-all duration-300 pb-1">
-                                Ver Video de Experiencia
+                            <button @click="openExperience" class="text-xs text-white uppercase tracking-[0.2em] border-b-2 border-transparent hover:border-brand-gold hover:text-brand-gold transition-all duration-300 pb-1 font-bold">
+                                Ver Video de Experiencia →
                             </button>
                         </div>
                     </div>
@@ -313,7 +314,7 @@
                     Trabajamos exclusivamente con desarrollos seleccionados para mantener el prestigio del programa.
                 </p>
                 
-                <button @click="openModal" class="bg-transparent border border-brand-gold text-brand-gold px-12 py-4 font-serif text-sm tracking-[0.2em] uppercase hover:bg-brand-gold hover:text-brand-black transition duration-300 shadow-glow">
+                <button @click="openExperience" class="bg-transparent border border-brand-gold text-brand-gold px-12 py-4 font-serif text-sm tracking-[0.2em] uppercase hover:bg-brand-gold hover:text-brand-black transition duration-300 shadow-glow hover:shadow-glow-strong hover:scale-105 rounded-sm font-bold">
                     Solicitar Alianza
                 </button>
 
@@ -435,35 +436,55 @@
                                 <div v-if="bookingStep === 1">
                                     <h4 class="text-white font-serif text-xl mb-6 text-center">Selecciona una fecha</h4>
                                     <div class="flex justify-between items-center mb-4 text-brand-gold text-sm font-bold uppercase tracking-widest px-2">
-                                        <button class="hover:text-white">&lt;</button>
-                                        <span>{{ currentMonth }}</span>
-                                        <button class="hover:text-white">&gt;</button>
+                                        <button @click="previousMonth" class="hover:text-white transition">&lt; Anterior</button>
+                                        <span class="text-center flex-1">{{ currentMonthLabel }}</span>
+                                        <button @click="nextMonth" class="hover:text-white transition">Próximo &gt;</button>
                                     </div>
-                                    <div class="grid grid-cols-7 gap-2 text-center text-xs text-gray-500 mb-2">
-                                        <span v-for="d in ['D','L','M','M','J','V','S']">{{d}}</span>
+                                    <div v-if="loadingCalendar" class="text-center py-8">
+                                        <p class="text-brand-muted text-sm">Cargando disponibilidad...</p>
                                     </div>
-                                    <div class="grid grid-cols-7 gap-2">
-                                        <button v-for="day in calendarDays" 
-                                                @click="selectDate(day)"
-                                                :disabled="!day.available"
-                                                :class="day.available 
-                                                    ? 'bg-white/5 hover:bg-brand-gold hover:text-black text-white cursor-pointer border border-white/10' 
-                                                    : 'text-gray-700 cursor-not-allowed'"
-                                                class="aspect-square rounded-sm flex items-center justify-center transition duration-200">
-                                            {{ day.day }}
-                                        </button>
+                                    <div v-else class="space-y-4">
+                                        <div class="grid grid-cols-7 gap-2 text-center text-xs text-gray-500 mb-2">
+                                            <span v-for="d in ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']">{{d}}</span>
+                                        </div>
+                                        <div class="grid grid-cols-7 gap-2">
+                                            <button v-for="day in calendarGrid" 
+                                                    :key="day.dateStr"
+                                                    @click="selectDateFromBackend(day)"
+                                                    :disabled="!day.available || day.empty"
+                                                    :class="day.empty 
+                                                        ? 'invisible' 
+                                                        : day.available 
+                                                            ? 'bg-white/5 hover:bg-brand-gold hover:text-black text-white cursor-pointer border border-brand-gold/30 hover:shadow-glow' 
+                                                            : 'text-gray-700 cursor-not-allowed border border-white/5 bg-black/20'"
+                                                    class="aspect-square rounded-sm flex items-center justify-center transition duration-200 font-serif font-bold">
+                                                {{ day.dayNum }}
+                                            </button>
+                                        </div>
+                                        <div v-if="availableDays.length === 0" class="text-center py-4">
+                                            <p class="text-brand-muted text-sm">No hay disponibilidad en este mes</p>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div v-if="bookingStep === 2">
                                     <button @click="bookingStep = 1" class="text-xs text-brand-gold hover:underline mb-4">← Volver al calendario</button>
                                     <h4 class="text-white font-serif text-xl mb-2">Horarios Disponibles</h4>
-                                    <p class="text-brand-muted text-sm mb-6">Para el {{ selectedDate }}</p>
+                                    <p class="text-brand-muted text-sm mb-6">Para el {{ selectedDateFormatted }}</p>
                                     
-                                    <div class="grid grid-cols-1 gap-3">
-                                        <button v-for="time in availableHours" @click="selectTime(time)" class="group flex items-center justify-between p-4 border border-white/10 rounded-sm hover:border-brand-gold hover:bg-brand-gold/10 transition">
-                                            <span class="text-white font-bold">{{ time }}</span>
-                                            <span class="text-xs text-brand-gold opacity-0 group-hover:opacity-100 uppercase tracking-widest transition">Confirmar</span>
+                                    <div v-if="loadingTimes" class="text-center py-8">
+                                        <p class="text-brand-muted text-sm">Cargando horarios...</p>
+                                    </div>
+                                    <div v-else-if="availableTimes.length === 0" class="text-center py-8">
+                                        <p class="text-brand-muted text-sm">No hay horarios disponibles</p>
+                                    </div>
+                                    <div v-else class="grid grid-cols-1 gap-3">
+                                        <button v-for="timeSlot in availableTimes" 
+                                                :key="timeSlot.id"
+                                                @click="selectTime(timeSlot)" 
+                                                class="group flex items-center justify-between p-4 border border-white/10 rounded-sm hover:border-brand-gold hover:bg-brand-gold/10 transition">
+                                            <span class="text-white font-bold">{{ formatTimeRange(timeSlot.time, timeSlot.end_time) }}</span>
+                                            <span class="text-xs text-brand-gold opacity-0 group-hover:opacity-100 uppercase tracking-widest transition">Seleccionar →</span>
                                         </button>
                                     </div>
                                 </div>
@@ -471,15 +492,20 @@
                                 <div v-if="bookingStep === 3">
                                     <button @click="bookingStep = 2" class="text-xs text-brand-gold hover:underline mb-4">← Cambiar hora</button>
                                     <h4 class="text-white font-serif text-xl mb-2">Detalles Finales</h4>
-                                    <p class="text-brand-muted text-sm mb-6">{{ selectedDate }} a las {{ selectedTime }}</p>
+                                    <p class="text-brand-muted text-sm mb-6">{{ selectedDateFormatted }} a las {{ formatTime(selectedTime.time) }}</p>
                                     
                                     <form @submit.prevent="confirmBooking" class="space-y-4">
-                                        <input type="text" placeholder="Nombre Completo" required class="w-full bg-black/30 border border-white/10 p-4 text-white focus:border-brand-gold outline-none rounded-sm">
-                                        <input type="email" placeholder="Email Corporativo" required class="w-full bg-black/30 border border-white/10 p-4 text-white focus:border-brand-gold outline-none rounded-sm">
-                                        <textarea placeholder="¿Alguna duda específica sobre tu inventario?" class="w-full bg-black/30 border border-white/10 p-4 text-white focus:border-brand-gold outline-none rounded-sm h-24"></textarea>
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <input v-model="bookingData.first_name" type="text" placeholder="Nombre" required class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
+                                            <input v-model="bookingData.last_name" type="text" placeholder="Apellido" class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
+                                        </div>
+                                        <input v-model="bookingData.email" type="email" placeholder="Email Corporativo" required class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
+                                        <input v-model="bookingData.phone" type="tel" placeholder="Teléfono (opcional)" class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
+                                        <input v-model="bookingData.company_name" type="text" placeholder="Empresa (opcional)" class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
+                                        <textarea v-model="bookingData.notes" placeholder="¿Alguna duda específica?" class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm h-20"></textarea>
                                         
-                                        <button type="submit" class="w-full bg-brand-gold text-brand-black font-bold py-4 uppercase tracking-widest hover:bg-white transition duration-300">
-                                            Confirmar Reunión Zoom
+                                        <button :disabled="confirmingBooking" type="submit" class="w-full bg-gradient-to-r from-brand-gold to-brand-goldDark text-brand-black font-bold py-3 uppercase tracking-widest hover:brightness-110 transition duration-300 disabled:opacity-50 rounded-sm text-sm">
+                                            {{ confirmingBooking ? 'Procesando...' : 'Confirmar Reunión Zoom' }}
                                         </button>
                                     </form>
                                 </div>
@@ -549,36 +575,47 @@
 
     <script>
         const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
+        
+        const API_BASE_URL = window.APP_CONFIG?.API_BASE_URL || 'http://localhost:8000/api';
 
         createApp({
             setup() {
                 // --- STATE GLOBAL ---
                 const mode = ref('A'); 
                 const scrolled = ref(false);
-                const showModal = ref(false); // Modal simple (Lead)
+                const showModal = ref(false);
                 
                 // --- STATE DE LA EXPERIENCIA (VIDEO + BOOKING) ---
-                const showExperience = ref(false); // Abre la PWA overlay
+                const showExperience = ref(false);
                 const videoRef = ref(null);
                 const videoCurrentTime = ref(0);
                 const videoDuration = ref(0);
                 const videoEnded = ref(false);
                 
-                // --- STATE DEL CALENDARIO (CALENDLY STYLE) ---
-                const bookingStep = ref(1); // 1: Calendario, 2: Horas, 3: Form, 4: Success
+                // --- STATE DEL CALENDARIO DINÁMICO ---
+                const bookingStep = ref(1);
                 const selectedDate = ref(null);
                 const selectedTime = ref(null);
+                const loadingCalendar = ref(false);
+                const loadingTimes = ref(false);
+                const confirmingBooking = ref(false);
                 
-                // Datos simulados del Calendario
-                const currentMonth = "Octubre 2025";
-                const calendarDays = Array.from({length: 31}, (_, i) => ({
-                    day: i + 1,
-                    available: [2, 4, 5, 8, 10, 12, 15, 18, 20, 24].includes(i + 1), // Días aleatorios disponibles
-                    weekday: ['L','M','M','J','V','S','D'][i % 7]
-                }));
-                const availableHours = ["09:00 AM", "10:30 AM", "11:00 AM", "02:00 PM", "04:30 PM"];
+                // Datos del calendario
+                const currentMonthOffset = ref(0);
+                const availableDays = ref([]);
+                const availableTimes = ref([]);
                 
-                // --- STATE DE LA GALERIA (SLIDER DE IMAGENES) ---
+                // Datos del formulario
+                const bookingData = ref({
+                    first_name: '',
+                    last_name: '',
+                    email: '',
+                    phone: '',
+                    company_name: '',
+                    notes: ''
+                });
+
+                // --- STATE DE LA GALERIA ---
                 const showGallery = ref(false);
                 const currentImageIndex = ref(0);
                 const images = [
@@ -639,17 +676,67 @@
                     }
                 ];
 
-                // --- LOGICA DE SCROLL ---
-                const handleScroll = () => scrolled.value = window.scrollY > 50;
-                onMounted(() => window.addEventListener('scroll', handleScroll));
-                onUnmounted(() => window.removeEventListener('scroll', handleScroll));
+                // --- COMPUTED ---
+                const currentMonthLabel = computed(() => {
+                    const date = new Date();
+                    date.setMonth(date.getMonth() + currentMonthOffset.value);
+                    return date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase();
+                });
 
-                // --- LOGICA DE VIDEO PROGRESIVO ---
+                const currentMonthDate = computed(() => {
+                    const date = new Date();
+                    date.setMonth(date.getMonth() + currentMonthOffset.value);
+                    return date;
+                });
+
+                const calendarGrid = computed(() => {
+                    const date = currentMonthDate.value;
+                    const year = date.getFullYear();
+                    const month = date.getMonth();
+                    
+                    const firstDay = new Date(year, month, 1);
+                    const lastDay = new Date(year, month + 1, 0);
+                    const startDate = new Date(firstDay);
+                    startDate.setDate(startDate.getDate() - firstDay.getDay());
+                    
+                    const grid = [];
+                    let currentDate = new Date(startDate);
+                    
+                    while (grid.length < 42) {
+                        const dateStr = currentDate.toISOString().split('T')[0];
+                        const dayNum = currentDate.getDate();
+                        const isCurrentMonth = currentDate.getMonth() === month;
+                        
+                        const isAvailable = isCurrentMonth && availableDays.value.includes(dateStr);
+                        
+                        grid.push({
+                            dateStr,
+                            dayNum,
+                            available: isAvailable,
+                            empty: !isCurrentMonth
+                        });
+                        
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                    
+                    return grid;
+                });
+
+                const selectedDateFormatted = computed(() => {
+                    if (!selectedDate.value) return '';
+                    const date = new Date(selectedDate.value);
+                    return date.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                });
+
+                // --- FUNCIONES ---
+                const handleScroll = () => scrolled.value = window.scrollY > 50;
+                
                 const openExperience = () => {
                     showExperience.value = true;
-                    // Reset
-                    bookingStep.value = 1; 
+                    bookingStep.value = 1;
                     videoEnded.value = false;
+                    currentMonthOffset.value = 0;
+                    loadCalendarData();
                     setTimeout(() => {
                         if(videoRef.value) videoRef.value.play();
                     }, 500);
@@ -658,6 +745,16 @@
                 const closeExperience = () => {
                     showExperience.value = false;
                     if(videoRef.value) videoRef.value.pause();
+                    selectedDate.value = null;
+                    selectedTime.value = null;
+                    bookingData.value = {
+                        first_name: '',
+                        last_name: '',
+                        email: '',
+                        phone: '',
+                        company_name: '',
+                        notes: ''
+                    };
                 };
 
                 const handleTimeUpdate = () => {
@@ -669,8 +766,6 @@
 
                 const handleVideoEnd = () => {
                     videoEnded.value = true;
-                    // Automáticamente pasar al booking si termina el video
-                    // Opcional: dejar que el usuario decida
                 };
 
                 const skipToBooking = () => {
@@ -678,109 +773,192 @@
                     videoEnded.value = true;
                 };
 
-                // --- LOGICA DE BOOKING ---
-                const selectDate = (day) => {
-                    if(!day.available) return;
-                    selectedDate.value = `${day.day} de ${currentMonth}`;
-                    bookingStep.value = 2; // Ir a horas
-                };
-                
-                const selectTime = (time) => {
-                    selectedTime.value = time;
-                    bookingStep.value = 3; // Ir a formulario
-                };
-
-                const confirmBooking = () => {
-                    // Aquí iría la integración real con API
-                    bookingStep.value = 4; // Success
-                    setTimeout(() => {
-                        closeExperience();
-                        alert("¡Reunión Agendada! Te enviamos el acceso a Zoom.");
-                    }, 3000);
-                };
-
-                // --- CONTENIDO DE TEXTOS (Igual que antes) ---
-                const content = {
-                    A: { 
-                        hero: {
-                            tagline: "El Nuevo Estándar Inmobiliario",
-                            headline: "Casas con <span class='text-gold-gradient'>Pasaporte Global.</span>",
-                            subtext: "Diferencia tu desarrollo integrando un nivel de vida superior. El distintivo que convierte a compradores indecisos en residentes orgullosos.",
-                            ctaPrimary: "Innovar mi Oferta"
-                        },
-                        product: {
-                            title: "No vendas M², vende Pertenencia",
-                            description: [
-                                "El mercado ha cambiado. El comprador actual no solo busca dónde dormir, busca a dónde ir.",
-                                "Freedom Lifestyle Key™ no es un simple agregado; es una credencial de ciudadano global."
-                            ]
-                        },
-                        benefits: {
-                            b1: { title: "Diferenciación Real", text: "Sal del océano rojo de las comparaciones físicas. Sé el único en tu zona que ofrece el mundo entero." },
-                            b2: { title: "Valor de Marca", text: "Asocia tu desarrollo con lujo, libertad y acceso, no con descuentos y regateo." },
-                            b3: { title: "Fidelización", text: "Tus clientes recordarán tu firma cada vez que usen su llave en París, Tulum o Nueva York." }
-                        }
-                    },
-                    B: { 
-                        hero: {
-                            tagline: "Acelerador Comercial",
-                            headline: "Convierte la Objeción de Precio en <span class='text-gold-gradient'>Oportunidad.</span>",
-                            subtext: "Protege tus márgenes ofreciendo un activo de valor percibido superior al descuento. El instrumento definitivo para acelerar la absorción de inventario.",
-                            ctaPrimary: "Acelerar Cierres"
-                        },
-                        product: {
-                            title: "El Cierre Perfecto",
-                            description: [
-                                "En un mercado saturado, el descuento es el recurso del desesperado. Freedom Lifestyle Key™ es tu as bajo la manga.",
-                                "Otorga un activo financiero de alto valor para el cliente con costo marginal para ti."
-                            ]
-                        },
-                        benefits: {
-                            b1: { title: "Velocidad de Absorción", text: "Reduce el ciclo de decisión del cliente dándole una razón poderosa para firmar HOY." },
-                            b2: { title: "Protección de Margen", text: "Es más rentable otorgar una membresía global que bajar el 5% del precio de lista." },
-                            b3: { title: "Arma de Ventas", text: "Empodera a tus vendedores con un argumento de cierre exclusivo que la competencia no tiene." }
-                        }
-                    },
-                    C: {
-                        hero: {
-                            tagline: "Estilo de Vida Sin Límites",
-                            headline: "Que su Inversión no frene sus <span class='text-gold-gradient'>Viajes.</span>",
-                            subtext: "Dales la seguridad de un hogar y la libertad del mundo. El privilegio de tarifas netas que justifica y premia la inversión inmobiliaria.",
-                            ctaPrimary: "Verificar Disponibilidad"
-                        },
-                        product: {
-                            title: "La Libertad de Tenerlo Todo",
-                            description: [
-                                "Tus clientes temen que la hipoteca acabe con sus vacaciones. Elimina ese miedo para siempre.",
-                                "Al entregar Freedom Lifestyle Key™, les dices: 'Puedes tener tu casa y también el mundo'."
-                            ]
-                        },
-                        benefits: {
-                            b1: { title: "Conexión Emocional", text: "Ataca el deseo real de la familia: disfrutar la vida y coleccionar momentos." },
-                            b2: { title: "Justificación Racional", text: "El ahorro acumulado en futuros viajes ayuda a racionalizar el costo de la propiedad." },
-                            b3: { title: "Embajadores de Marca", text: "Un cliente que viaja feliz es un cliente que presume tu desarrollo a sus círculos sociales." }
-                        }
+                // --- FUNCIONES DE CALENDARIO ---
+                const loadCalendarData = async () => {
+                    loadingCalendar.value = true;
+                    try {
+                        const date = currentMonthDate.value;
+                        const year = date.getFullYear();
+                        const month = date.getMonth() + 1;
+                        
+                        const response = await fetch(`${API_BASE_URL}/available-slots/?year=${year}&month=${month}`);
+                        const data = await response.json();
+                        availableDays.value = data.available_days || [];
+                    } catch (error) {
+                        console.error('Error loading calendar:', error);
+                        availableDays.value = [];
+                    } finally {
+                        loadingCalendar.value = false;
                     }
                 };
+
+                const previousMonth = () => {
+                    currentMonthOffset.value--;
+                    loadCalendarData();
+                };
+
+                const nextMonth = () => {
+                    currentMonthOffset.value++;
+                    loadCalendarData();
+                };
+
+                const selectDateFromBackend = async (day) => {
+                    selectedDate.value = day.dateStr;
+                    loadingTimes.value = true;
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/timeslots/available_times/?date=${day.dateStr}`);
+                        availableTimes.value = await response.json();
+                        bookingStep.value = 2;
+                    } catch (error) {
+                        console.error('Error loading times:', error);
+                        availableTimes.value = [];
+                    } finally {
+                        loadingTimes.value = false;
+                    }
+                };
+
+                const selectTime = (timeSlot) => {
+                    selectedTime.value = timeSlot;
+                    bookingData.value.timeslot = timeSlot.id;
+                    bookingStep.value = 3;
+                };
+
+                const formatTime = (timeStr) => {
+                    if (!timeStr) return '';
+                    const [hours, minutes] = timeStr.split(':');
+                    const hour = parseInt(hours);
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    const display = hour % 12 || 12;
+                    return `${display}:${minutes} ${ampm}`;
+                };
+
+                const formatTimeRange = (startStr, endStr) => {
+                    return `${formatTime(startStr)} - ${formatTime(endStr)}`;
+                };
+
+                const confirmBooking = async () => {
+                    confirmingBooking.value = true;
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/bookings/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(bookingData.value)
+                        });
+                        
+                        if (response.ok) {
+                            const booking = await response.json();
+                            bookingStep.value = 4;
+                            setTimeout(() => {
+                                closeExperience();
+                                alert(`¡Reserva Confirmada!\n\nTe hemos enviado los detalles a ${bookingData.value.email}\n\nZoom Link: ${booking.zoom_link}`);
+                            }, 2000);
+                        } else {
+                            alert('Error al confirmar la reserva. Por favor intenta nuevamente.');
+                        }
+                    } catch (error) {
+                        console.error('Error confirming booking:', error);
+                        alert('Error de conexión. Por favor intenta nuevamente.');
+                    } finally {
+                        confirmingBooking.value = false;
+                    }
+                };
+
+                // --- LOGICA DE SCROLL ---
+                onMounted(() => {
+                    window.addEventListener('scroll', handleScroll);
+                });
+                onUnmounted(() => {
+                    window.removeEventListener('scroll', handleScroll);
+                });
 
                 return {
                     mode, content, showModal, scrolled,
                     // Experience State
                     showExperience, videoRef, videoEnded, videoCurrentTime,
-                    bookingStep, selectedDate, selectedTime, calendarDays, availableHours, currentMonth,
+                    bookingStep, selectedDate, selectedTime,
+                    loadingCalendar, loadingTimes, confirmingBooking,
+                    currentMonthLabel, calendarGrid, availableTimes, selectedDateFormatted,
+                    bookingData,
                     // Actions
                     setMode: (m) => mode.value = m,
                     openModal: () => showModal.value = true,
                     closeModal: () => showModal.value = false,
                     openExperience, closeExperience, handleTimeUpdate, handleVideoEnd, skipToBooking,
-                    selectDate, selectTime, confirmBooking,
+                    selectDateFromBackend, selectTime, confirmBooking,
+                    previousMonth, nextMonth,
+                    formatTime, formatTimeRange,
                     // Gallery Actions
                     showGallery, currentImageIndex, images,
                     openGallery: () => { showGallery.value = true; currentImageIndex.value = 0; },
                     closeGallery: () => showGallery.value = false,
                     nextImage: () => currentImageIndex.value = (currentImageIndex.value + 1) % images.length,
                     prevImage: () => currentImageIndex.value = (currentImageIndex.value - 1 + images.length) % images.length,
-                    goToImage: (index) => currentImageIndex.value = index
+                    goToImage: (index) => currentImageIndex.value = index,
+                    // Content data
+                    content: {
+                        A: { 
+                            hero: {
+                                tagline: "El Nuevo Estándar Inmobiliario",
+                                headline: "Casas con <span class='text-gold-gradient'>Pasaporte Global.</span>",
+                                subtext: "Diferencia tu desarrollo integrando un nivel de vida superior. El distintivo que convierte a compradores indecisos en residentes orgullosos.",
+                                ctaPrimary: "Innovar mi Oferta"
+                            },
+                            product: {
+                                title: "No vendas M², vende Pertenencia",
+                                description: [
+                                    "El mercado ha cambiado. El comprador actual no solo busca dónde dormir, busca a dónde ir.",
+                                    "Freedom Lifestyle Key™ no es un simple agregado; es una credencial de ciudadano global."
+                                ]
+                            },
+                            benefits: {
+                                b1: { title: "Diferenciación Real", text: "Sal del océano rojo de las comparaciones físicas. Sé el único en tu zona que ofrece el mundo entero." },
+                                b2: { title: "Valor de Marca", text: "Asocia tu desarrollo con lujo, libertad y acceso, no con descuentos y regateo." },
+                                b3: { title: "Fidelización", text: "Tus clientes recordarán tu firma cada vez que usen su llave en París, Tulum o Nueva York." }
+                            }
+                        },
+                        B: { 
+                            hero: {
+                                tagline: "Acelerador Comercial",
+                                headline: "Convierte la Objeción de Precio en <span class='text-gold-gradient'>Oportunidad.</span>",
+                                subtext: "Protege tus márgenes ofreciendo un activo de valor percibido superior al descuento. El instrumento definitivo para acelerar la absorción de inventario.",
+                                ctaPrimary: "Acelerar Cierres"
+                            },
+                            product: {
+                                title: "El Cierre Perfecto",
+                                description: [
+                                    "En un mercado saturado, el descuento es el recurso del desesperado. Freedom Lifestyle Key™ es tu as bajo la manga.",
+                                    "Otorga un activo financiero de alto valor para el cliente con costo marginal para ti."
+                                ]
+                            },
+                            benefits: {
+                                b1: { title: "Velocidad de Absorción", text: "Reduce el ciclo de decisión del cliente dándole una razón poderosa para firmar HOY." },
+                                b2: { title: "Protección de Margen", text: "Es más rentable otorgar una membresía global que bajar el 5% del precio de lista." },
+                                b3: { title: "Arma de Ventas", text: "Empodera a tus vendedores con un argumento de cierre exclusivo que la competencia no tiene." }
+                            }
+                        },
+                        C: {
+                            hero: {
+                                tagline: "Estilo de Vida Sin Límites",
+                                headline: "Que su Inversión no frene sus <span class='text-gold-gradient'>Viajes.</span>",
+                                subtext: "Dales la seguridad de un hogar y la libertad del mundo. El privilegio de tarifas netas que justifica y premia la inversión inmobiliaria.",
+                                ctaPrimary: "Verificar Disponibilidad"
+                            },
+                            product: {
+                                title: "La Libertad de Tenerlo Todo",
+                                description: [
+                                    "Tus clientes temen que la hipoteca acabe con sus vacaciones. Elimina ese miedo para siempre.",
+                                    "Al entregar Freedom Lifestyle Key™, les dices: 'Puedes tener tu casa y también el mundo'."
+                                ]
+                            },
+                            benefits: {
+                                b1: { title: "Conexión Emocional", text: "Ataca el deseo real de la familia: disfrutar la vida y coleccionar momentos." },
+                                b2: { title: "Justificación Racional", text: "El ahorro acumulado en futuros viajes ayuda a racionalizar el costo de la propiedad." },
+                                b3: { title: "Embajadores de Marca", text: "Un cliente que viaja feliz es un cliente que presume tu desarrollo a sus círculos sociales." }
+                            }
+                        }
+                    }
                 };
             }
         }).mount('#app');
