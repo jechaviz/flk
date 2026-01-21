@@ -1,7 +1,42 @@
 import os
 import ftplib
 import sys
+import subprocess
 from datetime import datetime
+
+def get_changed_files():
+    """Get list of files changed in recent commits"""
+    try:
+        # Get files changed in the last commit
+        result = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1'], capture_output=True, text=True, cwd='.')
+        if result.returncode == 0 and result.stdout.strip():
+            changed_files = result.stdout.strip().split('\n')
+            return [f for f in changed_files if os.path.exists(f)]
+    except:
+        pass
+
+    # Fallback: get all tracked files if git diff fails
+    try:
+        result = subprocess.run(['git', 'ls-files'], capture_output=True, text=True, cwd='.')
+        if result.returncode == 0:
+            all_files = result.stdout.strip().split('\n')
+            return [f for f in all_files if os.path.exists(f) and not f.startswith('.')]
+    except:
+        pass
+
+    # Final fallback: return essential files
+    return ['index.html', 'tour.html', '.htaccess', 'sitemap.xml', 'robots.txt', 'site.webmanifest']
+
+def upload_file(ftp, local_file, remote_file):
+    """Upload a single file to FTP"""
+    try:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Subiendo: {local_file}")
+        with open(local_file, 'rb') as f:
+            ftp.storbinary(f'STOR {remote_file}', f)
+        return True
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Error subiendo {local_file}: {e}")
+        return False
 
 def upload_directory(ftp, local_path, remote_path):
     try:
@@ -35,28 +70,57 @@ def main():
         print("ERROR: Configura FTP_USER y FTP_PASS en GitHub Secrets.")
         sys.exit(1)
 
+    # Get changed files
+    changed_files = get_changed_files()
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] Archivos a subir: {len(changed_files)}")
+    for f in changed_files[:10]:  # Show first 10
+        print(f"  - {f}")
+    if len(changed_files) > 10:
+        print(f"  ... y {len(changed_files) - 10} más")
+
+    if not changed_files:
+        print("No se encontraron archivos para subir.")
+        return
+
     try:
         print(f"Conectando a {FTP_HOST}...")
         ftp = ftplib.FTP(FTP_HOST)
         ftp.login(user=FTP_USER, passwd=FTP_PASS)
         ftp.set_pasv(True) # MODO PASIVO OBLIGATORIO
         ftp.encoding = "utf-8"
-        
-        print(f"Desplegando en {REMOTE_DIR}...")
-        # Subir archivos raíz (Frontend)
-        for f in ['index.html', 'config.js', 'BIENVENIDA.txt']:
-            if os.path.exists(f):
-                with open(f, 'rb') as file_obj:
-                    ftp.storbinary(f'STOR {f}', file_obj)
 
-        # Subir carpetas
-        for folder in ['img', 'backend']:
-            if os.path.exists(folder):
-                upload_directory(ftp, folder, folder)
-                ftp.cwd(REMOTE_DIR)
+        print(f"Desplegando en {REMOTE_DIR}...")
+        ftp.cwd(REMOTE_DIR)
+
+        uploaded_count = 0
+        # Upload changed files
+        for file_path in changed_files:
+            if os.path.isfile(file_path) and not file_path.startswith('.'):
+                # Create remote directory structure if needed
+                remote_path = file_path.replace('\\', '/')
+                remote_dir = os.path.dirname(remote_path)
+
+                if remote_dir and remote_dir != '.':
+                    try:
+                        ftp.cwd(REMOTE_DIR)  # Reset to root
+                        # Create directory structure
+                        parts = remote_dir.split('/')
+                        for part in parts:
+                            if part:
+                                try:
+                                    ftp.cwd(part)
+                                except:
+                                    ftp.mkd(part)
+                                    ftp.cwd(part)
+                    except:
+                        pass  # Directory might already exist
+
+                # Upload file
+                if upload_file(ftp, file_path, os.path.basename(file_path)):
+                    uploaded_count += 1
 
         ftp.quit()
-        print("¡Deployment exitoso!")
+        print(f"¡Deployment exitoso! {uploaded_count} archivos subidos.")
     except Exception as e:
         print(f"FALLO: {e}")
         sys.exit(1)
