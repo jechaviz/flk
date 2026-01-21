@@ -4,28 +4,66 @@ import sys
 import subprocess
 from datetime import datetime
 
-def get_changed_files():
-    """Get list of files changed in recent commits"""
+def get_current_commit():
+    """Get current git commit hash"""
     try:
-        # Get files changed in the last commit
-        result = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1'], capture_output=True, text=True, cwd='.')
-        if result.returncode == 0 and result.stdout.strip():
-            changed_files = result.stdout.strip().split('\n')
-            return [f for f in changed_files if os.path.exists(f)]
+        result = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True, cwd='.')
+        if result.returncode == 0:
+            return result.stdout.strip()
     except:
         pass
+    return None
 
-    # Fallback: get all tracked files if git diff fails
+def get_changed_files():
+    """Get list of files changed since last deployment"""
+    current_commit = get_current_commit()
+    if not current_commit:
+        print("No se pudo obtener el commit actual, usando fallback")
+        return get_all_tracked_files()
+
+    # Check if we have a tracking file on server (this would be checked via FTP)
+    # For now, we'll use a local tracking file
+    tracking_file = '.deploy_tracking'
+    last_deployed_commit = None
+
+    if os.path.exists(tracking_file):
+        try:
+            with open(tracking_file, 'r') as f:
+                last_deployed_commit = f.read().strip()
+        except:
+            pass
+
+    if not last_deployed_commit:
+        print("Primera deployment detectada - subiendo todos los archivos")
+        return get_all_tracked_files()
+
+    try:
+        # Get files changed between last deployed commit and current
+        result = subprocess.run(['git', 'diff', '--name-only', last_deployed_commit, current_commit],
+                              capture_output=True, text=True, cwd='.')
+        if result.returncode == 0 and result.stdout.strip():
+            changed_files = result.stdout.strip().split('\n')
+            filtered_files = [f for f in changed_files if os.path.exists(f) and not f.startswith('.')]
+            print(f"Archivos cambiados desde {last_deployed_commit[:8]}: {len(filtered_files)}")
+            return filtered_files
+    except Exception as e:
+        print(f"Error obteniendo archivos cambiados: {e}")
+
+    # Fallback: get all tracked files
+    return get_all_tracked_files()
+
+def get_all_tracked_files():
+    """Get all tracked files for full deployment"""
     try:
         result = subprocess.run(['git', 'ls-files'], capture_output=True, text=True, cwd='.')
         if result.returncode == 0:
             all_files = result.stdout.strip().split('\n')
-            return [f for f in all_files if os.path.exists(f) and not f.startswith('.')]
+            return [f for f in all_files if os.path.exists(f) and not f.startswith(('.', '__pycache__', 'node_modules'))]
     except:
         pass
 
     # Final fallback: return essential files
-    return ['index.html', 'tour.html', '.htaccess', 'sitemap.xml', 'robots.txt', 'site.webmanifest']
+    return ['index.html', 'tour.html', '.htaccess', 'sitemap.xml', 'robots.txt', 'site.webmanifest', 'DOCUMENTATION.md', 'README.md']
 
 def upload_file(ftp, local_file, remote_file):
     """Upload a single file to FTP"""
@@ -120,6 +158,17 @@ def main():
                     uploaded_count += 1
 
         ftp.quit()
+
+        # Save deployment tracking
+        current_commit = get_current_commit()
+        if current_commit:
+            try:
+                with open('.deploy_tracking', 'w') as f:
+                    f.write(current_commit)
+                print(f"Tracking actualizado: {current_commit[:8]}")
+            except Exception as e:
+                print(f"Warning: No se pudo actualizar tracking local: {e}")
+
         print(f"¡Deployment exitoso! {uploaded_count} archivos subidos.")
     except Exception as e:
         print(f"FALLO: {e}")
