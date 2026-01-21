@@ -109,7 +109,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         """Crear una nueva reserva"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         # Verificar disponibilidad del slot
         timeslot = TimeSlot.objects.get(id=serializer.validated_data['timeslot'].id)
         if not timeslot.is_slot_available():
@@ -117,8 +117,10 @@ class BookingViewSet(viewsets.ModelViewSet):
                 {'error': 'No hay espacios disponibles en este horario'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        self.perform_create(serializer)
+
+        # Crear la reserva (el serializer maneja status y zoom_link)
+        booking = serializer.save()
+
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 

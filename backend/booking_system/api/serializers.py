@@ -38,7 +38,8 @@ class BookingSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         booking = Booking.objects.create(**validated_data)
+        # Set status to confirmed and generate Zoom link
         booking.status = 'confirmed'
-        booking.zoom_link = f"https://zoom.us/meeting/{booking.id}{int(booking.created_at.timestamp())}"
+        booking.zoom_link = f"https://zoom.us/j/{booking.id * 123456789}"  # Simple generation
         booking.save()
         return booking

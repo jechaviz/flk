@@ -67,8 +67,19 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://flk.com.mx",
+    "https://www.flk.com.mx",
     "file://",
 ]
+
+# Allow all origins in development, restrict in production
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "https://flk.com.mx",
+        "https://www.flk.com.mx",
+    ]
 
 CORS_ALLOW_CREDENTIALS = True
 
