@@ -270,12 +270,6 @@ Para producción necesitarás:
 
 ---
 
-## 🤝 Contribuciones
-
-Este proyecto es propietario. Para cambios, contacta al equipo de desarrollo.
-
----
-
 ## 📝 License
 
 © 2026 Freedom Lifestyle Key. Todos los derechos reservados.

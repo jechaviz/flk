@@ -1,0 +1,22 @@
+# Robots.txt for Freedom Lifestyle Key
+# https://flk.com.mx/robots.txt
+
+User-agent: *
+Allow: /
+
+# Allow access to main pages
+Allow: /
+Allow: /tour.html
+
+# Disallow admin and sensitive areas
+Disallow: /admin/
+Disallow: /backend/
+Disallow: /deploy/
+Disallow: /config.js
+Disallow: /verify_system.py
+
+# Sitemap
+Sitemap: https://flk.com.mx/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1
