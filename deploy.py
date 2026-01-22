@@ -102,7 +102,7 @@ def main():
     FTP_HOST = os.getenv('FTP_SERVER', 'server2.shared.spaceship.host')
     FTP_USER = os.getenv('FTP_USER')
     FTP_PASS = os.getenv('FTP_PASS')
-    REMOTE_DIR = os.getenv('REMOTE_DIR', '/public_html')
+    REMOTE_DIR = os.getenv('REMOTE_DIR', '/')
 
     if not FTP_USER or not FTP_PASS:
         print("ERROR: Configura FTP_USER y FTP_PASS en GitHub Secrets.")
