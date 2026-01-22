@@ -165,8 +165,8 @@ Versión 1.0.1 - Enero 2026
 
 ### Configuración de Producción
 - Variables de entorno en GitHub Secrets
-- FTP_SERVER, FTP_USER, FTP_PASS
-- Puerto 21 por defecto
+- SSH_HOST, SSH_USER, SSH_PRIVATE_KEY
+- Puerto SSH 22 por defecto
 
 ### Servidor Requisitos
 - Apache/Nginx con mod_rewrite
