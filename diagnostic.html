@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico de Aplicación</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #050505;
+            color: #E2E8F0;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .check {
+            background: #0B0F19;
+            border: 1px solid #C5A059;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .pass {
+            color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+        }
+        .fail {
+            color: #ff0000;
+            background: rgba(255, 0, 0, 0.1);
+        }
+        .warn {
+            color: #ffff00;
+            background: rgba(255, 255, 0, 0.1);
+        }
+        h1 {
+            color: #C5A059;
+            border-bottom: 2px solid #C5A059;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #E5C585;
+            margin-top: 30px;
+        }
+        code {
+            background: #121826;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Diagnóstico de Aplicación Freedom Lifestyle Key</h1>
+    
+    <h2>Verificación de Recursos</h2>
+    <div id="resources-check"></div>
+    
+    <h2>Verificación de Vue</h2>
+    <div id="vue-check"></div>
+    
+    <h2>Verificación de Configuración</h2>
+    <div id="config-check"></div>
+    
+    <h2>Verificación de Estilos</h2>
+    <div id="styles-check"></div>
+    
+    <h2>Verificación de DOM</h2>
+    <div id="dom-check"></div>
+    
+    <h2>Verificación de Consola</h2>
+    <div id="console-check"></div>
+
+    <script>
+        const checks = {
+            resources: [],
+            vue: [],
+            config: [],
+            styles: [],
+            dom: [],
+            console: []
+        };
+
+        // ============= RECURSOS =============
+        function checkResources() {
+            // Tailwind
+            if (window.tailwind) {
+                checks.resources.push({ status: 'pass', msg: '✅ Tailwind CSS cargado' });
+            } else {
+                checks.resources.push({ status: 'fail', msg: '❌ Tailwind CSS NO cargado' });
+            }
+
+            // Vue
+            if (window.Vue) {
+                checks.resources.push({ status: 'pass', msg: `✅ Vue 3 cargado (v${window.Vue.version})` });
+            } else {
+                checks.resources.push({ status: 'fail', msg: '❌ Vue 3 NO cargado' });
+            }
+
+            // Font Awesome
+            const faLink = document.querySelector('link[href*="fontawesome"]');
+            if (faLink && !faLink.disabled) {
+                checks.resources.push({ status: 'pass', msg: '✅ Font Awesome cargado' });
+            } else {
+                checks.resources.push({ status: 'fail', msg: '❌ Font Awesome NO cargado' });
+            }
+
+            // Google Fonts
+            const googleFonts = document.querySelector('link[href*="fonts.googleapis"]');
+            if (googleFonts && !googleFonts.disabled) {
+                checks.resources.push({ status: 'pass', msg: '✅ Google Fonts cargadas' });
+            } else {
+                checks.resources.push({ status: 'fail', msg: '❌ Google Fonts NO cargadas' });
+            }
+        }
+
+        // ============= VUE =============
+        function checkVue() {
+            const appElement = document.getElementById('app');
+            if (!appElement) {
+                checks.vue.push({ status: 'fail', msg: '❌ Elemento #app NO encontrado' });
+                return;
+            }
+            checks.vue.push({ status: 'pass', msg: '✅ Elemento #app encontrado' });
+
+            // Verificar si Vue está montado
+            setTimeout(() => {
+                const vueInstance = appElement.__vue_app__;
+                if (vueInstance) {
+                    checks.vue.push({ status: 'pass', msg: '✅ Vue aplicación montada correctamente' });
+                } else {
+                    // Intentar detectar si tiene atributos Vue
+                    if (appElement.attributes.length > 0) {
+                        checks.vue.push({ status: 'warn', msg: '⚠️ Vue podría estar montado (verificar consola)' });
+                    } else {
+                        checks.vue.push({ status: 'fail', msg: '❌ Vue NO está montado' });
+                    }
+                }
+                renderChecks();
+            }, 500);
+        }
+
+        // ============= CONFIGURACIÓN =============
+        function checkConfig() {
+            if (!window.APP_CONFIG) {
+                checks.config.push({ status: 'fail', msg: '❌ APP_CONFIG NO configurado' });
+                return;
+            }
+            checks.config.push({ status: 'pass', msg: '✅ APP_CONFIG disponible' });
+
+            // Verificar propiedades
+            const required = ['API_BASE_URL', 'ENVIRONMENT', 'BOOKING_MODE', 'TIMEZONE'];
+            required.forEach(prop => {
+                if (window.APP_CONFIG[prop] !== undefined) {
+                    const value = window.APP_CONFIG[prop];
+                    checks.config.push({ 
+                        status: 'pass', 
+                        msg: `✅ ${prop}: <code>${value}</code>` 
+                    });
+                } else {
+                    checks.config.push({ 
+                        status: 'fail', 
+                        msg: `❌ ${prop} NO definido` 
+                    });
+                }
+            });
+
+            // Cal.com
+            if (window.APP_CONFIG.CALCOM_API_KEY) {
+                checks.config.push({ 
+                    status: 'pass', 
+                    msg: `✅ Cal.com API Key configurada` 
+                });
+            } else {
+                checks.config.push({ 
+                    status: 'warn', 
+                    msg: `⚠️ Cal.com NO configurado (usando fallback Django)` 
+                });
+            }
+        }
+
+        // ============= ESTILOS =============
+        function checkStyles() {
+            // Color scheme
+            const root = document.documentElement;
+            const computedStyle = window.getComputedStyle(root);
+            
+            // Body background
+            const bodyStyle = window.getComputedStyle(document.body);
+            const bgColor = bodyStyle.backgroundColor;
+            if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') {
+                checks.styles.push({ status: 'pass', msg: `✅ Estilo background aplicado: ${bgColor}` });
+            } else {
+                checks.styles.push({ status: 'fail', msg: '❌ Estilo background NO aplicado' });
+            }
+
+            // Tailwind classes
+            const elementsWithTailwind = document.querySelectorAll('[class*="bg-brand"], [class*="text-brand"]');
+            if (elementsWithTailwind.length > 0) {
+                checks.styles.push({ 
+                    status: 'pass', 
+                    msg: `✅ Clases Tailwind encontradas (${elementsWithTailwind.length} elementos)` 
+                });
+            } else {
+                checks.styles.push({ 
+                    status: 'warn', 
+                    msg: '⚠️ Clases Tailwind brand NO encontradas' 
+                });
+            }
+
+            // Custom fonts
+            const fontElements = document.querySelectorAll('[class*="font-serif"], [class*="font-sans"]');
+            if (fontElements.length > 0) {
+                checks.styles.push({ 
+                    status: 'pass', 
+                    msg: `✅ Fuentes aplicadas (${fontElements.length} elementos)` 
+                });
+            } else {
+                checks.styles.push({ 
+                    status: 'fail', 
+                    msg: '❌ Fuentes NO aplicadas' 
+                });
+            }
+        }
+
+        // ============= DOM =============
+        function checkDOM() {
+            // Estructura básica
+            const sections = {
+                'header': document.querySelector('header'),
+                '#concepto': document.getElementById('concepto'),
+                '#ventajas': document.getElementById('ventajas'),
+                'footer': document.querySelector('footer'),
+                'nav': document.querySelector('nav')
+            };
+
+            Object.entries(sections).forEach(([name, element]) => {
+                if (element) {
+                    checks.dom.push({ 
+                        status: 'pass', 
+                        msg: `✅ Sección encontrada: ${name}` 
+                    });
+                } else {
+                    checks.dom.push({ 
+                        status: 'fail', 
+                        msg: `❌ Sección NO encontrada: ${name}` 
+                    });
+                }
+            });
+
+            // Elementos Vue
+            const vueElements = document.querySelectorAll('[v-if], [v-show], [@click]');
+            checks.dom.push({ 
+                status: vueElements.length > 0 ? 'pass' : 'fail', 
+                msg: `${vueElements.length > 0 ? '✅' : '❌'} Elementos Vue: ${vueElements.length}` 
+            });
+        }
+
+        // ============= CONSOLE =============
+        function checkConsole() {
+            const originalLog = console.log;
+            const originalError = console.error;
+            const originalWarn = console.warn;
+            let errorCount = 0;
+            let warnCount = 0;
+
+            console.error = function(...args) {
+                errorCount++;
+                originalError.apply(console, args);
+            };
+
+            console.warn = function(...args) {
+                warnCount++;
+                originalWarn.apply(console, args);
+            };
+
+            // Esperar a que Vue monte
+            setTimeout(() => {
+                checks.console.push({ 
+                    status: errorCount === 0 ? 'pass' : 'fail', 
+                    msg: `${errorCount === 0 ? '✅' : '❌'} Errores en consola: ${errorCount}` 
+                });
+                checks.console.push({ 
+                    status: warnCount <= 2 ? 'pass' : 'warn', 
+                    msg: `${warnCount <= 2 ? '✅' : '⚠️'} Advertencias en consola: ${warnCount}` 
+                });
+                renderChecks();
+            }, 1000);
+        }
+
+        // ============= RENDER =============
+        function renderChecks() {
+            Object.entries(checks).forEach(([category, items]) => {
+                const container = document.getElementById(`${category}-check`);
+                if (!container) return;
+                
+                container.innerHTML = items.map(item => `
+                    <div class="check ${item.status}">
+                        ${item.msg}
+                    </div>
+                `).join('');
+            });
+        }
+
+        // ============= INICIAR =============
+        window.addEventListener('load', () => {
+            checkResources();
+            checkVue();
+            checkConfig();
+            checkStyles();
+            checkDOM();
+            checkConsole();
+            renderChecks();
+        });
+    </script>
+</body>
+</html>

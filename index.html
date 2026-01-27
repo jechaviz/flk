@@ -62,6 +62,7 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/fixes.css">
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script>
@@ -99,7 +100,44 @@
     </script>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="config.js"></script>
+    <script>
+        // Configuración inline de la aplicación
+        window.APP_CONFIG = {
+            // Cal.com Configuration
+            CALCOM_API_KEY: '',
+            CALCOM_EMBED_ID: '',
+            CALCOM_EVENT_URL: 'freedom-lifestyle/30min',
+
+            // URL base del API Django
+            API_BASE_URL: window.location.hostname === 'localhost' 
+                ? 'http://localhost:8000/api'
+                : '/api',
+
+            // Configuración de video
+            VIDEO_URL: 'https://videos.pexels.com/video-files/3205634/3205634-hd_1920_1080_25fps.mp4',
+            VIDEO_DURATION: 30,
+
+            // Zona horaria
+            TIMEZONE: 'America/Mexico_City',
+            LANGUAGE: 'es',
+
+            // Máximo de intentos de carga
+            MAX_RETRIES: 3,
+
+            // Timeout en milisegundos
+            API_TIMEOUT: 5000,
+
+            // Entorno actual
+            ENVIRONMENT: window.location.hostname === 'localhost' ? 'development' : 'production',
+
+            // Modo de reservas
+            BOOKING_MODE: 'api'  // 'calcom' o 'api'
+        };
+
+        console.log(`🚀 App initialized in ${window.APP_CONFIG.ENVIRONMENT} mode`);
+        console.log(`📋 Booking mode: ${window.APP_CONFIG.BOOKING_MODE}`);
+        console.log(`📡 API URL: ${window.APP_CONFIG.API_BASE_URL}`);
+    </script>
 
     <style>
         /* Estilos Personalizados High-End */
@@ -396,6 +434,19 @@
 </head>
 
 <body class="antialiased overflow-x-hidden selection:bg-brand-gold selection:text-brand-black">
+    <!-- Estilos iniciales para evitar FOUC (Flash of Unstyled Content) -->
+    <style>
+        body {
+            background-color: #050505;
+            color: #E2E8F0;
+            font-family: "Lato", sans-serif;
+        }
+        #app {
+            opacity: 1;
+            transition: opacity 0.3s ease-in;
+        }
+    </style>
+    
     <div id="app" class="relative min-h-screen flex flex-col">
 
         <div class="fixed bottom-6 left-6 z-50 glass-panel p-4 rounded-lg border-l-2 border-brand-gold transition-all duration-300 hover:scale-105 shadow-glow">
@@ -1492,7 +1543,22 @@
                     goToImage: (index) => currentImageIndex.value = index,
                 };
             }
-        }).mount('#app');
+        }).config.errorHandler = (err, instance, info) => {
+            console.error('Vue Error:', err, info);
+        }
+        .mount('#app');
+        
+        // Verificar que se montó correctamente
+        window.addEventListener('load', () => {
+            const app = document.getElementById('app');
+            if (app && !app.hasAttribute('data-v-app')) {
+                console.warn('⚠️ Vue app podría no estar totalmente montado');
+                // Intentar forzar un re-render
+                document.body.style.opacity = '1';
+            } else {
+                console.log('✅ Vue app montado correctamente');
+            }
+        });
     </script>
 </body>
 </html>
