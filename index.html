@@ -99,7 +99,22 @@
         }
     </script>
     
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Prefer local vendor copy of Vue when available to avoid CDN issues -->
+    <script>
+        (function(){
+            var local = '/vendor/vue.global.js';
+            var script = document.createElement('script');
+            script.src = local;
+            script.onload = function(){ console.log('✅ Loaded local Vue from ' + local); };
+            script.onerror = function(){
+                console.warn('⚠️ Local Vue not available, falling back to CDN');
+                var cdn = document.createElement('script');
+                cdn.src = 'https://unpkg.com/vue@3/dist/vue.global.js';
+                document.head.appendChild(cdn);
+            };
+            document.head.appendChild(script);
+        })();
+    </script>
     <script>
         // Configuración inline de la aplicación
         window.APP_CONFIG = {
