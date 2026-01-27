@@ -761,90 +761,109 @@
 
                             <div class="w-full md:w-2/3 p-8 relative overflow-y-auto">
                                 
-                                <div v-if="bookingStep === 1">
-                                    <h4 class="text-white font-serif text-xl mb-6 text-center">Selecciona una fecha</h4>
-                                    <div class="flex justify-between items-center mb-4 text-brand-gold text-sm font-bold uppercase tracking-widest px-2">
-                                        <button @click="previousMonth" class="hover:text-white transition">&lt; Anterior</button>
-                                        <span class="text-center flex-1">{{ currentMonthLabel }}</span>
-                                        <button @click="nextMonth" class="hover:text-white transition">Próximo &gt;</button>
+                                <!-- Cal.com Embed (si está configurado) -->
+                                <div v-if="bookingMode === 'calcom' && bookingStep === 1" class="w-full h-full">
+                                    <h4 class="text-white font-serif text-xl mb-6 text-center">Agenda tu Demo</h4>
+                                    <iframe 
+                                        v-if="calcomEmbedId"
+                                        :src="`https://cal.com/${calcomEventUrl}?embed=${calcomEmbedId}`"
+                                        title="Agendar Demo"
+                                        frameborder="0"
+                                        class="w-full h-96 rounded-lg border border-brand-gold/20"
+                                    ></iframe>
+                                    <div v-else class="text-center py-8">
+                                        <p class="text-brand-muted text-sm">⚠️ Cal.com no configurado. Por favor, verifica tus variables de entorno.</p>
+                                        <button @click="closeExperience" class="mt-4 text-xs text-brand-gold hover:underline">Cerrar</button>
                                     </div>
-                                    <div v-if="loadingCalendar" class="text-center py-8">
-                                        <p class="text-brand-muted text-sm">Cargando disponibilidad...</p>
-                                    </div>
-                                    <div v-else class="space-y-4">
-                                        <div class="grid grid-cols-7 gap-2 text-center text-xs text-gray-500 mb-2">
-                                            <span v-for="d in ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']">{{d}}</span>
+                                </div>
+
+                                <!-- Backend Django Fallback (si Cal.com no está configurado) -->
+                                <div v-else class="space-y-4">
+                                    <div v-if="bookingStep === 1">
+                                        <h4 class="text-white font-serif text-xl mb-6 text-center">Selecciona una fecha</h4>
+                                        <div class="flex justify-between items-center mb-4 text-brand-gold text-sm font-bold uppercase tracking-widest px-2">
+                                            <button @click="previousMonth" class="hover:text-white transition">&lt; Anterior</button>
+                                            <span class="text-center flex-1">{{ currentMonthLabel }}</span>
+                                            <button @click="nextMonth" class="hover:text-white transition">Próximo &gt;</button>
                                         </div>
-                                        <div class="grid grid-cols-7 gap-2">
-                                            <button v-for="day in calendarGrid" 
-                                                    :key="day.dateStr"
-                                                    @click="selectDateFromBackend(day)"
-                                                    :disabled="!day.available || day.empty"
-                                                    :class="day.empty 
-                                                        ? 'invisible' 
-                                                        : day.available 
-                                                            ? 'bg-white/5 hover:bg-brand-gold hover:text-black text-white cursor-pointer border border-brand-gold/30 hover:shadow-glow' 
-                                                            : 'text-gray-700 cursor-not-allowed border border-white/5 bg-black/20'"
-                                                    class="aspect-square rounded-sm flex items-center justify-center transition duration-200 font-serif font-bold">
-                                                {{ day.dayNum }}
+                                        <div v-if="loadingCalendar" class="text-center py-8">
+                                            <p class="text-brand-muted text-sm">Cargando disponibilidad...</p>
+                                        </div>
+                                        <div v-else class="space-y-4">
+                                            <div class="grid grid-cols-7 gap-2 text-center text-xs text-gray-500 mb-2">
+                                                <span v-for="d in ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']">{{d}}</span>
+                                            </div>
+                                            <div class="grid grid-cols-7 gap-2">
+                                                <button v-for="day in calendarGrid" 
+                                                        :key="day.dateStr"
+                                                        @click="selectDateFromBackend(day)"
+                                                        :disabled="!day.available || day.empty"
+                                                        :class="day.empty 
+                                                            ? 'invisible' 
+                                                            : day.available 
+                                                                ? 'bg-white/5 hover:bg-brand-gold hover:text-black text-white cursor-pointer border border-brand-gold/30 hover:shadow-glow' 
+                                                                : 'text-gray-700 cursor-not-allowed border border-white/5 bg-black/20'"
+                                                        class="aspect-square rounded-sm flex items-center justify-center transition duration-200 font-serif font-bold">
+                                                    {{ day.dayNum }}
+                                                </button>
+                                            </div>
+                                            <div v-if="availableDays.length === 0" class="text-center py-4">
+                                                <p class="text-brand-muted text-sm">No hay disponibilidad en este mes</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div v-if="bookingStep === 2">
+                                        <button @click="bookingStep = 1" class="text-xs text-brand-gold hover:underline mb-4">← Volver al calendario</button>
+                                        <h4 class="text-white font-serif text-xl mb-2">Horarios Disponibles</h4>
+                                        <p class="text-brand-muted text-sm mb-6">Para el {{ selectedDateFormatted }}</p>
+                                        
+                                        <div v-if="loadingTimes" class="text-center py-8">
+                                            <p class="text-brand-muted text-sm">Cargando horarios...</p>
+                                        </div>
+                                        <div v-else-if="availableTimes.length === 0" class="text-center py-8">
+                                            <p class="text-brand-muted text-sm">No hay horarios disponibles</p>
+                                        </div>
+                                        <div v-else class="grid grid-cols-1 gap-3">
+                                            <button v-for="timeSlot in availableTimes" 
+                                                    :key="timeSlot.id"
+                                                    @click="selectTime(timeSlot)" 
+                                                    class="group flex items-center justify-between p-4 border border-white/10 rounded-sm hover:border-brand-gold hover:bg-brand-gold/10 transition">
+                                                <span class="text-white font-bold">{{ formatTimeRange(timeSlot.time, timeSlot.end_time) }}</span>
+                                                <span class="text-xs text-brand-gold opacity-0 group-hover:opacity-100 uppercase tracking-widest transition">Seleccionar →</span>
                                             </button>
                                         </div>
-                                        <div v-if="availableDays.length === 0" class="text-center py-4">
-                                            <p class="text-brand-muted text-sm">No hay disponibilidad en este mes</p>
-                                        </div>
                                     </div>
-                                </div>
 
-                                <div v-if="bookingStep === 2">
-                                    <button @click="bookingStep = 1" class="text-xs text-brand-gold hover:underline mb-4">← Volver al calendario</button>
-                                    <h4 class="text-white font-serif text-xl mb-2">Horarios Disponibles</h4>
-                                    <p class="text-brand-muted text-sm mb-6">Para el {{ selectedDateFormatted }}</p>
-                                    
-                                    <div v-if="loadingTimes" class="text-center py-8">
-                                        <p class="text-brand-muted text-sm">Cargando horarios...</p>
-                                    </div>
-                                    <div v-else-if="availableTimes.length === 0" class="text-center py-8">
-                                        <p class="text-brand-muted text-sm">No hay horarios disponibles</p>
-                                    </div>
-                                    <div v-else class="grid grid-cols-1 gap-3">
-                                        <button v-for="timeSlot in availableTimes" 
-                                                :key="timeSlot.id"
-                                                @click="selectTime(timeSlot)" 
-                                                class="group flex items-center justify-between p-4 border border-white/10 rounded-sm hover:border-brand-gold hover:bg-brand-gold/10 transition">
-                                            <span class="text-white font-bold">{{ formatTimeRange(timeSlot.time, timeSlot.end_time) }}</span>
-                                            <span class="text-xs text-brand-gold opacity-0 group-hover:opacity-100 uppercase tracking-widest transition">Seleccionar →</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div v-if="bookingStep === 3">
-                                    <button @click="bookingStep = 2" class="text-xs text-brand-gold hover:underline mb-4">← Cambiar hora</button>
-                                    <h4 class="text-white font-serif text-xl mb-2">Detalles Finales</h4>
-                                    <p class="text-brand-muted text-sm mb-6">{{ selectedDateFormatted }} a las {{ formatTime(selectedTime.time) }}</p>
-                                    
-                                    <form @submit.prevent="confirmBooking" class="space-y-4">
-                                        <div class="grid grid-cols-2 gap-3">
-                                            <input v-model="bookingData.first_name" type="text" placeholder="Nombre" required class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
-                                            <input v-model="bookingData.last_name" type="text" placeholder="Apellido" class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
-                                        </div>
-                                        <input v-model="bookingData.email" type="email" placeholder="Email Corporativo" required class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
-                                        <input v-model="bookingData.phone" type="tel" placeholder="Teléfono (opcional)" class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
-                                        <input v-model="bookingData.company_name" type="text" placeholder="Empresa (opcional)" class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
-                                        <textarea v-model="bookingData.notes" placeholder="¿Alguna duda específica?" class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm h-20"></textarea>
+                                    <div v-if="bookingStep === 3">
+                                        <button @click="bookingStep = 2" class="text-xs text-brand-gold hover:underline mb-4">← Cambiar hora</button>
+                                        <h4 class="text-white font-serif text-xl mb-2">Detalles Finales</h4>
+                                        <p class="text-brand-muted text-sm mb-6">{{ selectedDateFormatted }} a las {{ formatTime(selectedTime.time) }}</p>
                                         
-                                        <button :disabled="confirmingBooking" type="submit" class="w-full bg-gradient-to-r from-brand-gold to-brand-goldDark text-brand-black font-bold py-3 uppercase tracking-widest hover:brightness-110 transition duration-300 disabled:opacity-50 rounded-sm text-sm">
-                                            {{ confirmingBooking ? 'Procesando...' : 'Confirmar Reunión Zoom' }}
-                                        </button>
-                                    </form>
-                                </div>
-
-                                <div v-if="bookingStep === 4" class="h-full flex flex-col items-center justify-center text-center">
-                                    <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 text-4xl mb-6">
-                                        ✓
+                                        <form @submit.prevent="confirmBooking" class="space-y-4">
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <input v-model="bookingData.first_name" type="text" placeholder="Nombre" required class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
+                                                <input v-model="bookingData.last_name" type="text" placeholder="Apellido" class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
+                                            </div>
+                                            <input v-model="bookingData.email" type="email" placeholder="Email Corporativo" required class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
+                                            <input v-model="bookingData.phone" type="tel" placeholder="Teléfono (opcional)" class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
+                                            <input v-model="bookingData.company_name" type="text" placeholder="Empresa (opcional)" class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm">
+                                            <textarea v-model="bookingData.notes" placeholder="¿Alguna duda específica?" class="w-full bg-black/30 border border-white/10 p-3 text-white focus:border-brand-gold outline-none rounded-sm text-sm h-20"></textarea>
+                                            
+                                            <button :disabled="confirmingBooking" type="submit" class="w-full bg-gradient-to-r from-brand-gold to-brand-goldDark text-brand-black font-bold py-3 uppercase tracking-widest hover:brightness-110 transition duration-300 disabled:opacity-50 rounded-sm text-sm">
+                                                {{ confirmingBooking ? 'Procesando...' : 'Confirmar Reunión Zoom' }}
+                                            </button>
+                                        </form>
                                     </div>
-                                    <h4 class="text-white font-serif text-2xl mb-2">¡Confirmado!</h4>
-                                    <p class="text-gray-400 max-w-xs mx-auto">Te hemos enviado la invitación de calendario a tu correo.</p>
-                                    <p class="text-xs text-brand-gold mt-8 animate-pulse">Redirigiendo al sitio...</p>
+
+                                    <div v-if="bookingStep === 4" class="h-full flex flex-col items-center justify-center text-center">
+                                        <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 text-4xl mb-6">
+                                            ✓
+                                        </div>
+                                        <h4 class="text-white font-serif text-2xl mb-2">¡Confirmado!</h4>
+                                        <p class="text-gray-400 max-w-xs mx-auto">Te hemos enviado la invitación de calendario a tu correo.</p>
+                                        <p class="text-xs text-brand-gold mt-8 animate-pulse">Redirigiendo al sitio...</p>
+                                    </div>
                                 </div>
 
                             </div>
@@ -905,6 +924,10 @@
         const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
         
         const API_BASE_URL = window.APP_CONFIG?.API_BASE_URL || 'http://localhost:8000/api';
+        const CALCOM_API_KEY = window.APP_CONFIG?.CALCOM_API_KEY || '';
+        const CALCOM_EMBED_ID = window.APP_CONFIG?.CALCOM_EMBED_ID || '';
+        const CALCOM_EVENT_URL = window.APP_CONFIG?.CALCOM_EVENT_URL || 'freedom-lifestyle/30min';
+        const BOOKING_MODE = window.APP_CONFIG?.BOOKING_MODE || 'api';  // 'calcom' o 'api'
 
         createApp({
             setup() {
@@ -918,6 +941,11 @@
                 const editingMode = ref(false);
                 const editingField = ref(null);
                 const editingValue = ref('');
+                
+                // --- STATE DE CAL.COM ---
+                const bookingMode = ref(BOOKING_MODE);
+                const calcomEmbedId = ref(CALCOM_EMBED_ID);
+                const calcomEventUrl = ref(CALCOM_EVENT_URL);
                 
                 // --- STATE DE LA EXPERIENCIA (VIDEO + BOOKING) ---
                 const showExperience = ref(false);
@@ -1437,6 +1465,8 @@
                     mode, content, showModal, scrolled, backendReady,
                     editingMode, editingField, editingValue,
                     customNarrative,
+                    // Cal.com State
+                    bookingMode, calcomEmbedId, calcomEventUrl,
                     // Experience State
                     showExperience, videoRef, videoEnded, videoCurrentTime,
                     bookingStep, selectedDate, selectedTime,

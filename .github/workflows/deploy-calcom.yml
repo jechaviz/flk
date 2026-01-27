@@ -1,0 +1,65 @@
+name: Deploy with Cal.com Secrets
+
+on:
+  push:
+    branches:
+      - main
+      - production
+  pull_request:
+    branches:
+      - main
+
+env:
+  VITE_CALCOM_API_KEY: ${{ secrets.CALCOM_API_KEY }}
+  VITE_CALCOM_EMBED_ID: ${{ secrets.CALCOM_EMBED_ID }}
+  VITE_CALCOM_EVENT_URL: ${{ secrets.CALCOM_EVENT_URL }}
+  VITE_SITE_URL: ${{ secrets.SITE_URL }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Create .env file for build
+        run: |
+          echo "VITE_CALCOM_API_KEY=${{ secrets.CALCOM_API_KEY }}" > .env
+          echo "VITE_CALCOM_EMBED_ID=${{ secrets.CALCOM_EMBED_ID }}" >> .env
+          echo "VITE_CALCOM_EVENT_URL=${{ secrets.CALCOM_EVENT_URL }}" >> .env
+          echo "VITE_SITE_URL=${{ secrets.SITE_URL }}" >> .env
+          echo "VITE_ENVIRONMENT=production" >> .env
+      
+      - name: Verify configuration
+        run: |
+          echo "✓ Cal.com API Key configured"
+          echo "✓ Cal.com Embed ID configured"
+          echo "✓ Event URL: ${{ secrets.CALCOM_EVENT_URL }}"
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Deploy
+        # Ajusta esto según tu plataforma de deploy (Vercel, Netlify, etc.)
+        run: echo "Deploy to your platform here"
+
+  # Job para verificar secrets en PRs
+  check-secrets:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Verify required secrets exist
+        run: |
+          if [ -z "${{ secrets.CALCOM_API_KEY }}" ]; then
+            echo "❌ CALCOM_API_KEY secret not configured"
+            exit 1
+          fi
+          if [ -z "${{ secrets.CALCOM_EMBED_ID }}" ]; then
+            echo "❌ CALCOM_EMBED_ID secret not configured"
+            exit 1
+          fi
+          echo "✅ All required secrets are configured"
