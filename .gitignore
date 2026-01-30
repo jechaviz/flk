@@ -49,6 +49,12 @@ Thumbs.db
 node_modules/
 npm-debug.log*
 
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/*.tsbuildinfo
+
 # Temporary files
 *.tmp
 *.temp
