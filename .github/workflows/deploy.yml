@@ -17,19 +17,10 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Install SSH Dependencies
-        run: pip install paramiko scp
-
-      - name: Run SSH Deploy
+      - name: Run FTP Deploy
         env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_KEY_PATH: ~/.ssh/id_rsa
-        run: python deploy_ssh.py
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          REMOTE_DIR: ${{ secrets.REMOTE_DIR }}
+        run: python deploy.py
