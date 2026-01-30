@@ -29,7 +29,7 @@ get_current_commit() {
     git rev-parse HEAD 2>/dev/null || echo ""
 }
 
-# Obtener archivos cambiados desde último deploy
+# Obtener archivos cambiados desde último deploy (con estado A/M/D)
 get_changed_files() {
     current_commit=$(get_current_commit)
     tracking_file=".deploy_tracking"
@@ -41,18 +41,21 @@ get_changed_files() {
 
     if [ -z "$last_commit" ]; then
         log_info "Primera deployment - subiendo todos los archivos"
-        git ls-files | grep -v "^\\." | grep -v "__pycache__" | grep -v "node_modules"
+        git ls-files | grep -v "^\." | grep -v "__pycache__" | grep -v "node_modules" | sed 's/^/A\t/'
         return
     fi
 
     log_info "Archivos cambiados desde ${last_commit:0:8}:"
-    git diff --name-only "$last_commit" "$current_commit" 2>/dev/null | grep -v "^\\." || true
+    git diff --name-status "$last_commit" "$current_commit" 2>/dev/null | grep -v "\t\." || true
 }
 
 # Crear directorio remoto por FTP
 mkd_ftp() {
     local dir="$1"
-    curl --ftp-create-dirs -T /dev/null "ftp://${FTP_HOST}${REMOTE_DIR}${dir}" --user "${FTP_USER}:${FTP_PASS}" 2>/dev/null
+    # Solo intentamos crear si no es el root
+    if [ "$dir" != "." ] && [ -n "$dir" ]; then
+        curl --ftp-create-dirs -T /dev/null "ftp://${FTP_HOST}${REMOTE_DIR}${dir}/.tmp_mkdir" --user "${FTP_USER}:${FTP_PASS}" 2>/dev/null
+    fi
 }
 
 # Subir archivo por FTP
@@ -70,6 +73,21 @@ upload_file() {
     fi
 }
 
+# Borrar archivo remoto por FTP
+delete_remote_file() {
+    local remote_file="$1"
+    
+    # Usar el comando DELE de FTP via curl
+    curl "ftp://${FTP_HOST}${REMOTE_DIR}" --user "${FTP_USER}:${FTP_PASS}" -Q "-DELE ${remote_file}" 2>/dev/null
+    if [ $? -eq 0 ]; then
+        log_info "Borrado remoto: $remote_file"
+        return 0
+    else
+        log_warn "No se pudo borrar (posiblemente ya no existe): $remote_file"
+        return 0 # No fallar el deploy si el archivo ya no estaba
+    fi
+}
+
 # Función principal
 main() {
     if [ -z "$FTP_USER" ] || [ -z "$FTP_PASS" ]; then
@@ -79,35 +97,47 @@ main() {
 
     log_info "Conectando a $FTP_HOST..."
 
-    # Obtener archivos cambiados
-    changed_files=$(get_changed_files)
-    file_count=$(echo "$changed_files" | grep -c . || echo 0)
+    # Obtener archivos cambiados con su estado (A, M, D)
+    changes=$(get_changed_files)
+    change_count=$(echo "$changes" | grep -c . || echo 0)
 
-    if [ "$file_count" -eq 0 ]; then
-        log_info "No hay archivos para subir"
+    if [ "$change_count" -eq 0 ]; then
+        log_info "No hay cambios para procesar"
         exit 0
     fi
 
-    log_info "Archivos a subir: $file_count"
+    log_info "Cambios detectados: $change_count"
 
-    uploaded=0
+    processed=0
     failed=0
 
-    while IFS= read -r file; do
-        if [ -f "$file" ] && [ -n "$file" ]; then
-            # Crear directorios necesarios
-            dir=$(dirname "$file")
-            if [ "$dir" != "." ]; then
-                mkd_ftp "$file"
-            fi
-
-            if upload_file "$file" "$file"; then
-                ((uploaded++))
-            else
-                ((failed++))
-            fi
-        fi
-    done <<< "$changed_files"
+    while IFS=$'\t' read -r status file; do
+        [ -z "$file" ] && continue
+        
+        case "$status" in
+            A|M)
+                if [ -f "$file" ]; then
+                    dir=$(dirname "$file")
+                    mkd_ftp "$dir"
+                    if upload_file "$file" "$file"; then
+                        ((processed++))
+                    else
+                        ((failed++))
+                    fi
+                fi
+                ;;
+            D)
+                if delete_remote_file "$file"; then
+                    ((processed++))
+                else
+                    ((failed++))
+                fi
+                ;;
+            *)
+                log_warn "Estado desconocido '$status' para: $file"
+                ;;
+        esac
+    done <<< "$changes"
 
     # Guardar tracking
     current_commit=$(get_current_commit)
