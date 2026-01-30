@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 # Configuración
 FTP_HOST="${FTP_SERVER:-server2.shared.spacespaceship.host}"
@@ -56,8 +55,7 @@ upload_file() {
     local remote_file="$2"
     local remote_dir="$3"
 
-    curl -T "$local_file" "ftp://${FTP_HOST}${remote_dir}${remote_file}" --user "${FTP_USER}:${FTP_PASS}" 2>/dev/null
-    if [ $? -eq 0 ]; then
+    if curl -T "$local_file" "ftp://${FTP_HOST}${remote_dir}${remote_file}" --user "${FTP_USER}:${FTP_PASS}" 2>/dev/null; then
         log_info "Subido: $local_file"
         return 0
     else
@@ -87,11 +85,13 @@ main() {
     log_info "Archivos a subir: $file_count"
 
     uploaded=0
+    failed=0
     while IFS= read -r file; do
         if [ -f "$file" ] && [ -n "$file" ]; then
-            upload_file "$file" "$file" "$REMOTE_DIR"
-            if [ $? -eq 0 ]; then
+            if upload_file "$file" "$file" "$REMOTE_DIR"; then
                 ((uploaded++))
+            else
+                ((failed++))
             fi
         fi
     done <<< "$changed_files"
@@ -101,6 +101,11 @@ main() {
     if [ -n "$current_commit" ]; then
         echo "$current_commit" > ".deploy_tracking"
         log_info "Tracking actualizado: ${current_commit:0:8}"
+    fi
+
+    if [ $failed -gt 0 ]; then
+        log_warn "Deployment completado con $failed errores"
+        exit 1
     fi
 
     log_info "¡Deployment exitoso! $uploaded archivos subidos"
