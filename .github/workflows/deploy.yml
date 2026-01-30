@@ -13,11 +13,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: FTP Deploy
-        uses: wanghaisheng/ftp-deploy@master
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USER }}
-          password: ${{ secrets.FTP_PASS }}
-          local-dir: ./
-          remote-dir: ${{ secrets.REMOTE_DIR }}
+      - name: Run FTP Deploy (Bash)
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          REMOTE_DIR: ${{ secrets.REMOTE_DIR }}
+        run: bash deploy.sh
