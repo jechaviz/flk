@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLK | Advanced Editor & Preview</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        @theme {
+            --color-brand-gold: #C5A059;
+            --color-brand-black: #050505;
+            --color-brand-magenta: #FF00FF;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(197, 160, 89, 0.2);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--color-brand-gold);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-brand-black text-gray-200 h-screen overflow-hidden font-sans">
+    <div id="app" class="h-full flex flex-col">
+        <!-- Navigation Header -->
+        <header
+            class="h-16 border-b border-white/10 flex items-center justify-between px-8 shrink-0 bg-black/40 backdrop-blur-md z-50">
+            <div class="flex items-center gap-4">
+                <div class="w-8 h-8 rounded bg-brand-gold flex items-center justify-center">
+                    <i class="fa-solid fa-bolt text-brand-black text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-serif text-white italic tracking-widest uppercase">Admin | Advanced Editor
+                    </h1>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span class="text-[10px] uppercase tracking-widest text-white/60">Live Preview Active</span>
+                </div>
+                <a href="/"
+                    class="text-[10px] uppercase tracking-widest hover:text-brand-gold transition-all border-b border-white/10 pb-0.5">Salir
+                    al Sitio</a>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 flex overflow-hidden">
+            <!-- Left Panel: Editor Sidebar -->
+            <aside class="w-[450px] border-r border-white/10 flex flex-col bg-black/20 shrink-0">
+                <div class="p-6 border-b border-white/5 space-y-1">
+                    <p class="text-[9px] text-brand-gold font-black uppercase tracking-[0.3em]">IA Architecture</p>
+                    <h2 class="text-xl font-serif italic text-white">Narrativa & Estética</h2>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+                    <!-- Section: Sales Narrative (TinyDB Persistence) -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3
+                                class="text-xs uppercase tracking-[0.2em] font-black text-white/40 flex items-center gap-2">
+                                <i class="fa-solid fa-pen-nib text-brand-gold"></i>
+                                Narrative Override
+                            </h3>
+                            <span class="text-[9px] text-brand-gold/50 font-mono">db.json persistence</span>
+                        </div>
+
+                        <div v-for="step in narrative" :key="step.step" class="glass p-4 rounded-xl space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] uppercase font-bold text-brand-gold">{{ step.step === 'date' ?
+                                    'Paso 1: Calendario' : 'Paso 2: Horarios' }}</span>
+                                <i class="fa-solid fa-cloud-arrow-up text-[10px] text-white/20"></i>
+                            </div>
+                            <input v-model="step.title" @change="saveNarrative(step)"
+                                class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-xs text-white outline-none focus:border-brand-gold transition"
+                                placeholder="Título del paso...">
+                            <textarea v-model="step.content" @change="saveNarrative(step)"
+                                class="w-full h-20 bg-white/5 border border-white/10 rounded-lg p-3 text-xs text-white/70 outline-none focus:border-brand-gold transition resize-none"
+                                placeholder="Descripción persuasiva..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Section: AI Visual Refactoring -->
+                    <div class="space-y-4 pt-4 border-t border-white/5">
+                        <h3 class="text-xs uppercase tracking-[0.2em] font-black text-white/40 flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-brand-gold"></i>
+                            IA Global Design
+                        </h3>
+                        <div class="glass p-5 rounded-xl space-y-4">
+                            <p class="text-[11px] text-white/60 italic leading-relaxed">Pide cambios estéticos globales
+                                (colores, sombras, layouts) y Gemini actualizará el index.html automáticamente.</p>
+                            <textarea v-model="prompt"
+                                placeholder="Ej: Cambia todos los botones a color magenta flúor con sombra de neón..."
+                                class="w-full h-28 bg-black/40 border border-white/10 rounded-lg p-4 text-xs outline-none focus:border-brand-gold transition resize-none"></textarea>
+                            <button @click="generate" :disabled="loading"
+                                class="w-full py-3 bg-brand-gold text-brand-black text-[10px] font-black uppercase tracking-[0.2em] rounded-lg transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 flex justify-center items-center gap-3">
+                                <i v-if="loading" class="fa-solid fa-circle-notch animate-spin"></i>
+                                {{ loading ? 'Evolucionando Código...' : 'Aplicar Cambios Estéticos' }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Section: Version Control -->
+                    <div class="space-y-4 pt-4 border-t border-white/5">
+                        <h3 class="text-xs uppercase tracking-[0.2em] font-black text-white/40 flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-brand-gold"></i>
+                            Git History
+                        </h3>
+                        <div class="flex gap-2">
+                            <select v-model="selectedCommit"
+                                class="flex-1 bg-white/5 border border-white/10 rounded-lg p-3 text-[10px] outline-none focus:border-brand-gold text-white appearance-none">
+                                <option v-for="c in history" :key="c.sha" :value="c.sha">{{ c.message }}</option>
+                            </select>
+                            <button @click="revert" :disabled="!selectedCommit || loading"
+                                class="px-4 border border-brand-gold text-brand-gold text-[10px] font-black uppercase rounded-lg hover:bg-brand-gold hover:text-brand-black transition disabled:opacity-30">
+                                Revertir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Status -->
+                <div class="p-4 bg-white/[0.02] border-t border-white/10">
+                    <div class="flex items-center justify-between text-[8px] uppercase tracking-widest text-white/30">
+                        <span>Database Status: Online</span>
+                        <span>v2.0.0 Alpha</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Right Panel: Live Viewport -->
+            <section class="flex-1 bg-white/5 p-8 relative flex flex-col overflow-hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-red-500/30"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/30"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-green-500/30"></div>
+                    </div>
+                    <div class="text-[10px] text-white/20 font-mono tracking-wider">localhost:8000/preview</div>
+                </div>
+
+                <div class="flex-1 rounded-2xl overflow-hidden shadow-2xl border border-white/5 relative group">
+                    <iframe id="preview-frame" src="/" class="w-full h-full border-none pointer-events-auto"></iframe>
+
+                    <!-- Overlay Controls (Optional) -->
+                    <div
+                        class="absolute bottom-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                        <button @click="refreshPreview"
+                            class="w-10 h-10 rounded-full bg-brand-gold text-brand-black flex items-center justify-center shadow-lg hover:scale-110 active:scale-90 transition">
+                            <i class="fa-solid fa-redo"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Feedback Overlay -->
+        <transition name="fade">
+            <div v-if="statusMsg"
+                class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-brand-gold text-brand-black px-10 py-3 rounded-full shadow-2xl font-black uppercase tracking-widest text-[11px] z-[100]">
+                <i class="fa-solid fa-check-circle mr-2"></i>
+                {{ statusMsg }}
+            </div>
+        </transition>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+        createApp({
+            setup() {
+                const prompt = ref('');
+                const loading = ref(false);
+                const history = ref([]);
+                const narrative = ref([
+                    { step: 'date', title: 'Comienza tu Evolución', content: 'Selecciona una fecha para tu Consultoría Estratégica.' },
+                    { step: 'time', title: 'Sesión de Alto Impacto', content: 'Diseñaremos el Business Case para acelerar la absorción de tu inventario.' }
+                ]);
+                const selectedCommit = ref(null);
+                const statusMsg = ref('');
+
+                const fetchNarrative = async () => {
+                    try {
+                        const res = await fetch('/api/narrative');
+                        const data = await res.json();
+                        if (data && data.length > 0) {
+                            narrative.value = data;
+                        }
+                    } catch (e) { console.error('Narrative load fail', e); }
+                };
+
+                const saveNarrative = async (stepData) => {
+                    try {
+                        await fetch('/api/narrative', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(stepData)
+                        });
+                        showMsg(`Sincronizado: ${stepData.step}`);
+                        refreshPreview();
+                    } catch (e) { showMsg('Error al guardar narrativa'); }
+                };
+
+                const fetchHistory = async () => {
+                    try {
+                        const res = await fetch('/api/history');
+                        history.value = await res.json();
+                        if (history.value.length > 0) selectedCommit.value = history.value[0].sha;
+                    } catch (e) { console.error('History fail', e); }
+                };
+
+                const generate = async () => {
+                    if (!prompt.value) return;
+                    loading.value = true;
+                    try {
+                        const res = await fetch('/api/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ prompt: prompt.value })
+                        });
+                        const data = await res.json();
+                        showMsg(data.message || 'Edición completada');
+                        prompt.value = '';
+                        await fetchHistory();
+                        refreshPreview();
+                    } catch (e) { showMsg('Error en generación'); }
+                    finally { loading.value = false; }
+                };
+
+                const revert = async () => {
+                    if (!selectedCommit.value) return;
+                    loading.value = true;
+                    try {
+                        const res = await fetch('/api/revert', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ sha: selectedCommit.value })
+                        });
+                        showMsg('Proyecto revertido');
+                        await fetchHistory();
+                        refreshPreview();
+                    } catch (e) { showMsg('Error al revertir'); }
+                    finally { loading.value = false; }
+                };
+
+                const refreshPreview = () => {
+                    const iframe = document.getElementById('preview-frame');
+                    if (iframe) iframe.src = iframe.src;
+                };
+
+                const showMsg = (txt) => {
+                    statusMsg.value = txt;
+                    setTimeout(() => statusMsg.value = '', 4000);
+                };
+
+                onMounted(() => {
+                    fetchHistory();
+                    fetchNarrative();
+                });
+
+                return { prompt, loading, history, narrative, selectedCommit, statusMsg, generate, revert, fetchHistory, saveNarrative, refreshPreview };
+            }
+        }).mount('#app');
+    </script>
+</body>
+
+</html>
