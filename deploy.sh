@@ -49,13 +49,19 @@ get_changed_files() {
     git diff --name-only "$last_commit" "$current_commit" 2>/dev/null | grep -v "^\\." || true
 }
 
+# Crear directorio remoto por FTP
+mkd_ftp() {
+    local dir="$1"
+    curl --ftp-create-dirs -T /dev/null "ftp://${FTP_HOST}${REMOTE_DIR}${dir}" --user "${FTP_USER}:${FTP_PASS}" 2>/dev/null
+}
+
 # Subir archivo por FTP
 upload_file() {
     local local_file="$1"
     local remote_file="$2"
-    local remote_dir="$3"
 
-    if curl -T "$local_file" "ftp://${FTP_HOST}${remote_dir}${remote_file}" --user "${FTP_USER}:${FTP_PASS}" 2>/dev/null; then
+    curl -T "$local_file" "ftp://${FTP_HOST}${REMOTE_DIR}${remote_file}" --user "${FTP_USER}:${FTP_PASS}" 2>/dev/null
+    if [ $? -eq 0 ]; then
         log_info "Subido: $local_file"
         return 0
     else
@@ -86,9 +92,16 @@ main() {
 
     uploaded=0
     failed=0
+
     while IFS= read -r file; do
         if [ -f "$file" ] && [ -n "$file" ]; then
-            if upload_file "$file" "$file" "$REMOTE_DIR"; then
+            # Crear directorios necesarios
+            dir=$(dirname "$file")
+            if [ "$dir" != "." ]; then
+                mkd_ftp "$file"
+            fi
+
+            if upload_file "$file" "$file"; then
                 ((uploaded++))
             else
                 ((failed++))
