@@ -24,7 +24,7 @@ export function BookingWidget({
                         "brandColor": "#D4AF37"
                     },
                     "body": {
-                        "backgroundColor": "transparent"
+                        "background": "transparent"
                     }
                 },
                 "hideEventTypeDetails": true,

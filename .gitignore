@@ -50,7 +50,7 @@ node_modules/
 npm-debug.log*
 
 # Next.js
-frontend/.next/
+# frontend/.next/
 frontend/out/
 frontend/build/
 frontend/*.tsbuildinfo
