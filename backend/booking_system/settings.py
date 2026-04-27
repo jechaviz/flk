@@ -1,7 +1,11 @@
 import os
+import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Add backend directory to path for imports
+sys.path.insert(0, str(BASE_DIR))
 
 SECRET_KEY = 'django-insecure-freedom-lifestyle-key-dev-secret-key-change-in-production'
 
