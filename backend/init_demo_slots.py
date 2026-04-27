@@ -3,7 +3,7 @@ Script para inicializar la base de datos con slots de ejemplo
 """
 import os
 import django
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'booking_system.settings')
 django.setup()
