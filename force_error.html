@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Force Client Error</title>
+</head>
+<body>
+  <h1>Forzar errores cliente - Prueba</h1>
+  <p>Esta página generará errores y enviará logs al servidor.</p>
+  <script>
+    // Client-side logger (minimal) - ensure it posts to /client-log
+    function sendLog(payload){
+      try{
+        if (navigator.sendBeacon){
+          navigator.sendBeacon('/client-log', typeof payload === 'string' ? payload : JSON.stringify(payload));
+          return;
+        }
+        fetch('/client-log', {method:'POST', body: JSON.stringify(payload), headers: {'Content-Type':'application/json'}, keepalive: true}).catch(()=>{});
+      }catch(e){}
+    }
+
+    console.error = function(...args){
+      sendLog({type:'console.error', args: args});
+      // also print to original console
+      if (window.__originalConsoleError) window.__originalConsoleError.apply(console, args);
+    };
+
+    window.addEventListener('error', function(ev){
+      sendLog({type:'window.error', message: ev.message, filename: ev.filename, lineno: ev.lineno, colno: ev.colno});
+    });
+
+    window.addEventListener('unhandledrejection', function(ev){
+      sendLog({type:'unhandledrejection', reason: (ev.reason && ev.reason.stack) ? ev.reason.stack : String(ev.reason)});
+    });
+
+    // Trigger errors
+    console.error('Test console.error from force_error.html');
+    setTimeout(()=>{ throw new Error('Forced thrown error for testing'); }, 300);
+    setTimeout(()=>{ Promise.reject('Forced rejection test'); }, 600);
+  </script>
+</body>
+</html>
